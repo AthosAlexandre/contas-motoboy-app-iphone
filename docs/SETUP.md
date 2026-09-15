@@ -25,8 +25,8 @@ npm run dev             # http://localhost:5173
 | `npm run lint` | ESLint, incluindo a regra de imports entre camadas (ADR-0012) |
 | `npm run icons` | Gera os ícones do PWA em `public/` a partir de `public/favicon.svg` |
 
-> Dá para desenvolver as telas **sem Firebase**, com dados em memória: `VITE_DATA_SOURCE=memory`
-> no `.env`.
+> Até a Sprint 2 o app roda **sem Firebase**: com `VITE_DATA_SOURCE=memory` os dados ficam salvos
+> **só no aparelho/navegador** (localStorage). Limpar os dados do site (ou trocar de aparelho) apaga tudo.
 
 ## Testar no celular (mesma rede Wi-Fi)
 
@@ -74,7 +74,8 @@ Abre em tela cheia, com ícone, sem a barra do navegador. Versões novas chegam 
 - Importar o repositório → framework **Vite** → build `npm run build`, saída `dist`.
 - Variáveis de ambiente: as mesmas `VITE_*` do `.env` (sem o debug token em produção).
 - `vercel.json` com rewrite para SPA (mesmo padrão do MegaMente).
-- **Produção:** https://contas-motoboy-app-iphone.vercel.app (time Vercel `megamente12`, plano Hobby).
+- **Produção:** https://contas-motoboy-app-iphone.vercel.app (conta **pessoal** do dev na Vercel — time `megamente12`,
+  plano Hobby, compartilhado com outros projetos pessoais).
   Cada push na `main` gera um deploy novo automaticamente.
 - ⚠️ As URLs de cada deploy (`contas-motoboy-app-iphone-<hash>-megamente12.vercel.app`) pedem login na
   Vercel (Deployment Protection) e mudam a cada deploy. **Instale no iPhone sempre pelo domínio de

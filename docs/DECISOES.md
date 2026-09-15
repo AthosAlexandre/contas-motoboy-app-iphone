@@ -259,7 +259,8 @@ dono), mas **sem nada que exija pagamento agora** (conta Apple paga, plano Blaze
 **Consequências:**
 - ✅ Virar produto não exige migrar dados nem reescrever a base.
 - ✅ Custo zero enquanto é pessoal.
-- 🔜 Antes de vender: domínio próprio, cobrança por assinatura na web, termos de uso e privacidade
+- 🔜 Antes de vender: domínio próprio, **Vercel Pro** (o plano Hobby é só para uso pessoal/não
+  comercial), cobrança por assinatura na web, termos de uso e privacidade
   (LGPD), plano pago do Gemini (no free tier o Google pode usar os dados) e estimativa de custo de
   IA por usuário. Apps nas lojas (Apple Developer US$ 99/ano, Sign in with Apple) na fase App, depois do PWA (ADR-0011).
 

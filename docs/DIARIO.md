@@ -4,6 +4,42 @@ Registro do que foi feito, quando e por quê. Ordem cronológica (mais recente n
 
 ---
 
+## 2026-09-15 — Sprint 1: turno, lançamentos e cálculos (entrada manual)
+
+**Feito:**
+- **domain:** entidades (`Shift`, `Earning`, `Expense`, `Fueling`, `Motorcycle`, `Platform`, `Settings`),
+  `DomainError` com mensagens prontas, `period.ts` (dia em São Paulo, semana seg–dom, mês).
+- **Calculadoras:** consumo medido por combustível (tanque cheio, ignora tanque misturado, média
+  ponderada dos 3 últimos intervalos); snapshot do turno (combustível do último abastecimento;
+  consumo medido → ficha; preço do último abastecimento → padrão; reserva por 100 km até existirem
+  itens); resumo do período (lucro operacional/líquido, R$/km, quanto guardar, modo estimado × real);
+  reserva por itens de manutenção.
+- **data:** repositórios locais (`data/memory`) salvos no aparelho via localStorage, com seed (iFood,
+  99Food, moto de exemplo flex 40/28 km/l, gasolina R$ 6,20, etanol R$ 4,15, reserva R$ 8,42/100 km).
+- **actions:** `startShift`, `endShift` (snapshot), `addEarning` (liga ao turno aberto), `addExpense`,
+  `addFueling` (preço/litro calculado; etanol só em moto flex), `listEntries`, `removeEntry`,
+  `getPeriodSummary`, `getFuelContext`.
+- **UI:** `lib/format`, `hooks/useAsyncAction`, `stores/today`; componentes `McCurrencyField` (estilo app
+  de banco), `McNumberField`, `McFuelTypeToggle`, `McStatCard`; telas **Hoje** e **Novo registro**.
+- Docs: componentes (4 docs), fluxos `hoje.md` e `novo-registro.md`, REGRAS, ARQUITETURA, SETUP.
+
+**Verificação:** 85 testes — inclui o fluxo completo de um dia com os números da REGRAS (R$ 180 de
+ganho → guardar R$ 28,70) —, type-check, lint (camadas) e build sem erros.
+**As telas não foram abertas num navegador nesta sessão** — falta usar de verdade.
+
+**Decisões pequenas:**
+- Modo local persiste no aparelho (localStorage) para a Sprint 1 já ser usável no iPhone.
+- Ids gerados sem `crypto.randomUUID` (indisponível em `http://IP` da rede local).
+- Categorias de gasto sem combustível e manutenção (entram por abastecimento e troca de item).
+- Abastecimento não soma no lucro do dia (o dia usa o custo estimado; evita contar duas vezes).
+- Consumo medido = média ponderada (km ÷ litros) dos últimos 3 intervalos.
+- `MaintenanceItem` (Sprint 4) e as ports da IA (Sprint 5) só quando forem usados.
+- Excluir lançamento pede confirmação com `window.confirm` (simples; trocar por diálogo no polimento).
+
+**Pendente (usuário):** testar no iPhone/navegador.
+
+---
+
 ## 2026-09-15 — Deploy na Vercel
 
 **Feito (usuário):** repositório importado na Vercel (time `megamente12`, Hobby), preset **Vite**,

@@ -58,28 +58,30 @@ nada quebra.
 - [x] Estrutura de documentação (`docs/`) e plano de sprints
 - [x] Decisões iniciais (2026-09-15)
 
-## 🗓️ Sprint 1 — Domínio e cálculos (sem Firebase)
+## 🗓️ Sprint 1 — Domínio e cálculos (sem Firebase) — código pronto, falta testar no iPhone
 **Domain (`src/domain`, puro e testado)**
-- [ ] Entidades: `Shift` (turno), `Earning`, `Expense`, `Fueling`, `MaintenanceItem`, `Platform`, `Motorcycle`
+- [x] Entidades: `Shift` (turno), `Earning`, `Expense`, `Fueling`, `Platform`, `Motorcycle`, `Settings`
+      + `period.ts` (dia em São Paulo, semana seg–dom, mês) — `MaintenanceItem` fica para a Sprint 4
 - [x] `money.ts` (`parseMoney("145,90")` → centavos) e `numbers.ts` (`parseDecimal`) — adiantado na Sprint 0
-- [ ] Calculadoras: lucro bruto/líquido, R$/km, preço/litro, consumo **por combustível** (tanque cheio,
+- [x] Calculadoras: lucro bruto/líquido, R$/km, preço/litro, consumo **por combustível** (tanque cheio,
       ignorando tanques misturados), custo de combustível do turno, etanol × gasolina, reserva de
       manutenção — ver [REGRAS-DE-NEGOCIO.md](./REGRAS-DE-NEGOCIO.md)
-      (já feitos na Sprint 0: `pricePerLiterCents`, `fuelCostCents`, `costPerKmCents`)
-- [ ] Ports: interfaces dos repositórios + `ReceiptExtractor` + `MotorcycleSpecsProvider`
-- [ ] Testes (Vitest) cobrindo todas as fórmulas e casos de borda
+      (`fuel.ts`, `shift.ts` com o snapshot, `profit.ts`, `maintenance.ts`)
+- [x] Ports: interfaces dos repositórios (`ReceiptExtractor` e `MotorcycleSpecsProvider` ficam para a Sprint 5)
+- [x] Testes (Vitest) cobrindo as fórmulas, casos de borda e o fluxo completo do dia — 85 testes no total
 
 **Actions + dados em memória**
-- [ ] Repositórios `data/memory/` + `data/container.ts`
-- [ ] Actions: `startShift`, `endShift` (grava o **snapshot** — ADR-0009), `addEarning`, `addExpense`,
+- [x] Repositórios `data/memory/` (salvos no aparelho via localStorage) + `data/container.ts`
+- [x] Actions: `startShift`, `endShift` (grava o **snapshot** — ADR-0009), `addEarning`, `addExpense`,
       `addFueling`, `getPeriodSummary`
-- [ ] Km, consumo e manutenção sempre **por moto** (`motorcycleId`)
+- [x] Km, consumo e manutenção sempre **por moto** (`motorcycleId`)
 
 **Telas (entrada manual)**
-- [ ] Componentes: `McCurrencyField`, `McNumberField`, `McFuelTypeToggle`, `McStatCard`
-- [ ] Tela **Hoje**: iniciar/encerrar turno (km inicial/final), lançamentos do dia, "quanto guardar"
-- [ ] Tela **Novo registro** (manual): ganho, gasto, abastecimento (combustível, valor total, litros,
+- [x] Componentes: `McCurrencyField`, `McNumberField`, `McFuelTypeToggle`, `McStatCard`
+- [x] Tela **Hoje**: iniciar/encerrar turno (km inicial/final), lançamentos do dia, "quanto guardar"
+- [x] Tela **Novo registro** (manual): ganho, gasto, abastecimento (combustível, valor total, litros,
       km, tanque cheio?)
+- [ ] **(você)** Testar o fluxo no iPhone/navegador (os dados ficam só no aparelho até a Sprint 2)
 
 ## 🗓️ Sprint 2 — Firebase: login e persistência
 - [ ] Auth e-mail/senha: cadastro, login, reset de senha, sair (ADR-0004) + guardas de rota

@@ -18,8 +18,8 @@ Entidades, fórmulas e casos de borda. Tudo aqui vira código em `src/domain`
 | `MaintenanceItem` | Item que se desgasta | nome, intervalo km, intervalo dias (opcional), custo estimado, último km, última data |
 | `MaintenanceRecord` | Uma troca feita | itemId, km, data, valor real |
 
-**Categorias de gasto:** combustível, manutenção, alimentação, celular/internet, equipamento
-(bag, capacete), multa, outros.
+**Categorias de gasto (diretos):** alimentação, celular/internet, equipamento (bag, capacete), multa,
+outros. Combustível entra como **abastecimento**; manutenção paga, como troca de item (Sprint 4).
 
 ## Fórmulas
 
@@ -55,7 +55,9 @@ consumo = (kmAbastecimentoCheioAtual − kmAbastecimentoCheioAnterior) / litrosC
 - Enquanto não houver histórico daquele combustível, usa o **consumo da ficha da moto** para ele
   (sugerido pela IA ou digitado, ex.: gasolina 40 km/l, etanol 28 km/l).
 - Com consumo medido disponível, o app sugere usá-lo; o usuário escolhe (ver [Moto](#moto)).
-- O consumo usado nos cálculos é a média dos últimos N intervalos daquele combustível (N = 3).
+- O consumo usado nos cálculos é a **média ponderada** dos últimos N intervalos daquele combustível
+  (N = 3): km somados ÷ litros somados.
+- Tanque cheio **sem km do odômetro** não fecha intervalo; os litros dele contam no intervalo seguinte.
 
 > **Por que não pela foto do marcador de combustível?** O marcador da moto é em barras/ponteiro;
 > a leitura da IA vira "~1/2 tanque", impreciso demais para calcular dinheiro. A foto do painel
@@ -155,3 +157,5 @@ faltamKm      = intervaloKm − kmDesdeÚltima
 - Mais de um turno no dia → somam-se km e ganhos.
 - Divisão por zero (0 km) → métricas por km mostram "—".
 - Leitura da IA com baixa confiança → campo destacado para conferência.
+- Abastecimento lançado no dia **não** soma no lucro do dia: o dia usa o custo estimado do snapshot
+  do turno (senão contaria duas vezes). O valor pago entra no resumo **mensal** (custo real).

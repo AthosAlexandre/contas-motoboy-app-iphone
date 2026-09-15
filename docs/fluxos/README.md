@@ -25,8 +25,8 @@ Abrir app
 | Tela | Feature | Sprint | Use cases principais | Doc |
 |------|---------|--------|----------------------|-----|
 | Login / Cadastro / Reset | `Auth` | 2 | SignIn, SignUp, ResetPassword | — |
-| Hoje | `Today` | 1 | StartShift, EndShift, GetPeriodSummary(dia) | — |
-| Novo registro (manual) | `Entry` | 1 | AddEarning, AddExpense, AddFueling | — |
+| Hoje | `today` | 1 ✅ | startShift, endShift, getPeriodSummary(dia), listEntries, removeEntry | [hoje.md](./hoje.md) |
+| Novo registro (manual) | `entry` | 1 ✅ | addEarning, addExpense, addFueling | [novo-registro.md](./novo-registro.md) |
 | Novo registro (foto) → Confirmar leitura | `Entry` | 5 | ExtractFromImage + Add* | — |
 | Resumo | `Reports` | 3 | GetPeriodSummary(dia/semana/mês), ListEntries | — |
 | Manutenção | `Maintenance` | 4 | ListMaintenanceItems, RegisterMaintenance | — |

@@ -67,10 +67,10 @@ Breve descrição / quando usar.
 
 | Componente | Origem Vuetify | Sprint | Doc |
 |------------|----------------|--------|-----|
-| `McCurrencyField` | `v-text-field` com máscara R$ → v-model em **centavos** (`number`) | 1 | — |
-| `McNumberField` | `v-text-field` numérico (km, litros) com sufixo | 1 | — |
-| `McFuelTypeToggle` | `v-btn-toggle` gasolina/etanol (prop `allowEthanol` para moto não flex) | 1 | — |
-| `McStatCard` | `v-card` com título, valor e variação (↑/↓) | 1 | — |
+| `McCurrencyField` | `v-text-field` com máscara R$ → v-model em **centavos** (`number`) | 1 ✅ | [mc-currency-field.md](./mc-currency-field.md) |
+| `McNumberField` | `v-text-field` numérico (km, litros) com sufixo | 1 ✅ | [mc-number-field.md](./mc-number-field.md) |
+| `McFuelTypeToggle` | `v-btn-toggle` gasolina/etanol (prop `allowEthanol` para moto não flex) | 1 ✅ | [mc-fuel-type-toggle.md](./mc-fuel-type-toggle.md) |
+| `McStatCard` | `v-card` com título, valor e legenda; `highlight` tonal | 1 ✅ | [mc-stat-card.md](./mc-stat-card.md) |
 | `McPeriodPicker` | `v-btn-toggle` dia/semana/mês + navegação ‹ › | 3 | — |
 | `McPieChart` | biblioteca de gráficos (escolhida na Sprint 3) | 3 | — |
 | `McLineChart` | biblioteca de gráficos (escolhida na Sprint 3) | 3 | — |

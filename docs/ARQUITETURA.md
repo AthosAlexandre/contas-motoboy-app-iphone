@@ -105,6 +105,9 @@ contas-motoboy-app-iphone/
   mudar sem afetar o `domain`.
 - A IA implementa `ReceiptExtractor` e `MotorcycleSpecsProvider`; fora de `data/ai` ninguém sabe que é Gemini.
 - `container.ts` é o único lugar que decide qual implementação usar.
+- **Modo local (até a Sprint 2):** `data/memory` salva os dados no próprio aparelho (localStorage), com
+  iFood/99Food, uma moto de exemplo e preços padrão (`memory/seed.ts`). Nos testes, os mesmos
+  repositórios rodam só em memória (`setRepos(createMemoryRepos())`).
 
 ### actions (casos de uso)
 - Uma função por ação do usuário: valida com o `domain` e persiste pelos repositórios do container.
@@ -127,6 +130,8 @@ contas-motoboy-app-iphone/
 ### stores e hooks
 - **Pinia** para estado global (usuário, moto ativa, turno aberto).
 - **Hooks** (composables) para o estado de uma tela: `loading`, `error`, dados já formatados.
+- Hoje: `stores/today` (dia atual: turno, lançamentos, resumo) e `hooks/useAsyncAction` (salvar com
+  carregando + aviso de sucesso/erro; `DomainError` mostra a própria mensagem).
 
 ### pages e components
 - Pages montam a tela com componentes `Mc*` e chamam hooks/actions. Sem regra de negócio.
