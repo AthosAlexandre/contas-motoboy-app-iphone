@@ -4,6 +4,20 @@ Registro do que foi feito, quando e por quê. Ordem cronológica (mais recente n
 
 ---
 
+## 2026-09-15 — Projeto Firebase criado
+
+**Feito (usuário, no Console):** projeto **`motoboy-contas`** no plano **Spark**; Gemini no console
+ligado (só assistente do Console, não afeta o app); **Google Analytics desligado**; app Web
+`motoboycontas-web` registrado **sem** Firebase Hosting (deploy é na Vercel).
+
+**Feito (código/docs):** `firebaseConfig` copiado para o `.env` local (fora do git), mantendo
+`VITE_DATA_SOURCE=memory`. SETUP, SPRINTS e firebase/ atualizados com o ID real do projeto.
+O `npm install firebase` e a inicialização ficam para a Sprint 2 (`src/services/firebase.ts`).
+
+**Ainda não ativado:** Authentication, Firestore, AI Logic, App Check, Remote Config (Sprints 2 e 5).
+
+---
+
 ## 2026-09-15 — Paleta azul-aqua (tons pastéis)
 
 **Contexto:** Ao rodar o app, o usuário não gostou do verde. Pediu **azul, tons pastéis, azul-aqua**.

@@ -4,6 +4,11 @@ Auth, modelagem do Firestore, regras de segurança, App Check e Remote Config.
 
 > Ainda **não configurado** — este é o rascunho. Preencher conforme implementarmos (Sprint 2).
 
+## Projeto
+- **ID:** `motoboy-contas` (criado em 2026-09-15, conta do dev) · app Web `motoboycontas-web`.
+- Sem Google Analytics (dá para ativar em Configurações → Integrações).
+- Configuração do app no `.env` (`VITE_FIREBASE_*`) — ver [SETUP.md](../SETUP.md).
+
 ## Plano
 - **Spark** (gratuito). Nada que exija Blaze na v1: sem Storage (ADR-0005), sem Cloud Functions,
   sem push (ADR-0013).

@@ -51,8 +51,11 @@ Abre em tela cheia, com ícone, sem a barra do navegador. Versões novas chegam 
 
 ## Firebase
 
-1. [console.firebase.google.com](https://console.firebase.google.com) → novo projeto `motoboycontas` (plano **Spark**).
-2. Adicionar app **Web** → copiar a configuração para o `.env` (`VITE_FIREBASE_*`).
+1. [console.firebase.google.com](https://console.firebase.google.com) → novo projeto (plano **Spark**).
+   Criado em 2026-09-15: **`motoboy-contas`**, sem Google Analytics.
+2. Adicionar app **Web** (apelido `motoboycontas-web`, **sem** Firebase Hosting) → copiar o
+   `firebaseConfig` para o `.env` (`VITE_FIREBASE_*`). Não é preciso rodar o `npm install firebase`
+   nem colar o código de exemplo do console — a inicialização fica em `src/services/firebase.ts`.
 3. **Authentication** → Sign-in method → **E-mail/senha**. Em *Settings → Authorized domains*,
    adicionar o domínio da Vercel.
 4. **Firestore Database** → criar em `southamerica-east1` (São Paulo), modo produção →

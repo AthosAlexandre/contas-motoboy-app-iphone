@@ -49,7 +49,7 @@ nada quebra.
 - [x] Scripts: `dev`, `build`, `test`, `type-check`, `lint`, `icons`
 
 **Firebase e deploy**
-- [ ] **(você)** Criar o projeto Firebase (Spark) + app Web → preencher o `.env` (ver [SETUP.md](./SETUP.md))
+- [x] **(você)** Criar o projeto Firebase (Spark) + app Web → preencher o `.env` — projeto `motoboy-contas`
 - [ ] `services/firebase.ts` — feito na Sprint 2, quando o projeto existir
 - [ ] **(você)** Deploy na Vercel + instalar na tela de início do iPhone (validar o PWA)
 
