@@ -4,6 +4,28 @@ Registro do que foi feito, quando e por quê. Ordem cronológica (mais recente n
 
 ---
 
+## 2026-09-15 — Deploy na Vercel
+
+**Feito (usuário):** repositório importado na Vercel (time `megamente12`, Hobby), preset **Vite**,
+7 variáveis `VITE_*` preenchidas (sem o `VITE_APPCHECK_DEBUG_TOKEN`).
+
+**Produção:** https://contas-motoboy-app-iphone.vercel.app
+
+**Verificado (curl):**
+- Domínio de produção responde 200 com o app.
+- `manifest.webmanifest` (já com as cores azul-aqua), `sw.js`, `registerSW.js` e ícones → 200.
+- `sw.js` com `cache-control: public, max-age=0, must-revalidate` (vercel.json funcionando).
+- Rota direta `/resumo` → 200 com o `index.html` (rewrite de SPA funcionando).
+- A URL do deploy com hash redireciona para o login da Vercel (Deployment Protection) — por isso a
+  instalação no iPhone deve usar o domínio de produção (anotado no SETUP).
+
+**Anotado para depois:** autorizar `contas-motoboy-app-iphone.vercel.app` no Firebase Auth
+(Sprint 2) e no reCAPTCHA do App Check (Sprint 5).
+
+**Pendente (usuário):** instalar na tela de início do iPhone e conferir.
+
+---
+
 ## 2026-09-15 — Projeto Firebase criado
 
 **Feito (usuário, no Console):** projeto **`motoboy-contas`** no plano **Spark**; Gemini no console

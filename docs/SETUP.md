@@ -74,6 +74,11 @@ Abre em tela cheia, com ícone, sem a barra do navegador. Versões novas chegam 
 - Importar o repositório → framework **Vite** → build `npm run build`, saída `dist`.
 - Variáveis de ambiente: as mesmas `VITE_*` do `.env` (sem o debug token em produção).
 - `vercel.json` com rewrite para SPA (mesmo padrão do MegaMente).
+- **Produção:** https://contas-motoboy-app-iphone.vercel.app (time Vercel `megamente12`, plano Hobby).
+  Cada push na `main` gera um deploy novo automaticamente.
+- ⚠️ As URLs de cada deploy (`contas-motoboy-app-iphone-<hash>-megamente12.vercel.app`) pedem login na
+  Vercel (Deployment Protection) e mudam a cada deploy. **Instale no iPhone sempre pelo domínio de
+  produção**, que é fixo — o app instalado recebe as versões novas sozinho.
 
 ## Solução de problemas
 

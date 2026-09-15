@@ -8,6 +8,8 @@ Auth, modelagem do Firestore, regras de segurança, App Check e Remote Config.
 - **ID:** `motoboy-contas` (criado em 2026-09-15, conta do dev) · app Web `motoboycontas-web`.
 - Sem Google Analytics (dá para ativar em Configurações → Integrações).
 - Configuração do app no `.env` (`VITE_FIREBASE_*`) — ver [SETUP.md](../SETUP.md).
+- **Domínio de produção:** `contas-motoboy-app-iphone.vercel.app` — adicionar em *Authentication →
+  Settings → Authorized domains* (Sprint 2) e no reCAPTCHA do App Check (Sprint 5).
 
 ## Plano
 - **Spark** (gratuito). Nada que exija Blaze na v1: sem Storage (ADR-0005), sem Cloud Functions,

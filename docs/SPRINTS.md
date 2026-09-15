@@ -51,7 +51,8 @@ nada quebra.
 **Firebase e deploy**
 - [x] **(você)** Criar o projeto Firebase (Spark) + app Web → preencher o `.env` — projeto `motoboy-contas`
 - [ ] `services/firebase.ts` — feito na Sprint 2, quando o projeto existir
-- [ ] **(você)** Deploy na Vercel + instalar na tela de início do iPhone (validar o PWA)
+- [x] **(você)** Deploy na Vercel — produção em https://contas-motoboy-app-iphone.vercel.app
+- [ ] **(você)** Instalar na tela de início do iPhone pelo domínio de produção (validar o PWA)
 
 **Docs**
 - [x] Estrutura de documentação (`docs/`) e plano de sprints
