@@ -1,0 +1,66 @@
+/* ============================================================
+   MotoboyContas — estilos globais (mobile-first)
+   ============================================================ */
+
+:root {
+  /* Fonte do sistema: SF Pro no iPhone, Roboto no Android — parece app nativo e não baixa nada */
+  --mc-font: -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Área da barra de gestos do iPhone (exige viewport-fit=cover no index.html) */
+  --mc-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html,
+body {
+  /* Sem o "puxa e volta" da página inteira: sensação de app */
+  overscroll-behavior-y: none;
+}
+
+.v-application {
+  font-family: var(--mc-font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ------------------------------------------------------------
+   Efeito vidro (ADR-0011) — imitação do Liquid Glass com CSS.
+   Usar com moderação: barra inferior, cabeçalho, cards de destaque.
+   Sem suporte a backdrop-filter → fundo quase opaco.
+   ------------------------------------------------------------ */
+.mc-glass {
+  background-color: rgba(var(--v-theme-surface), 0.94) !important;
+}
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .mc-glass {
+    background-color: rgba(var(--v-theme-surface), 0.68) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+}
+
+/* ------------------------------------------------------------
+   Layout do app (templates/AppLayout.vue)
+   ------------------------------------------------------------ */
+.mc-bottom-nav {
+  padding-bottom: var(--mc-safe-bottom);
+  box-sizing: content-box;
+}
+
+.mc-page {
+  padding-bottom: calc(16px + var(--mc-safe-bottom));
+}
+
+.mc-page .v-container {
+  max-width: 640px;
+}
+
+/* Reduz movimento para quem pede */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

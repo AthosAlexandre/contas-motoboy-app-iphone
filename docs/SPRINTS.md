@@ -7,18 +7,24 @@ O escopo pode mudar durante o desenvolvimento — mudanças ficam registradas ab
 (Sprints 1–4). A IA entra na Sprint 5 **preenchendo o mesmo formulário** — se a IA falhar,
 nada quebra.
 
-## ✅ Decisões iniciais (respondidas em 2026-09-15)
-- [x] **Nome do app:** `MotoboyContas`. Prefixo dos componentes: `MC`.
-- [x] **Versão do iOS:** iPhone de testes em iOS 26.6.1. Mínimo do app: **iOS 18** (ADR-0001).
+## ✅ Decisões (respondidas em 2026-09-15)
+- [x] **Nome do app:** `MotoboyContas`. Prefixo dos componentes: `Mc`.
+- [x] **Stack:** PWA com **Vue 3 + TypeScript + Vuetify 4**, sem Tailwind (ADR-0011).
+- [x] **Aparelhos:** iPhone (Safari, iOS 26.6.1) e Android (Chrome), instalado na tela de início.
 - [x] **Uso:** pessoal no início; se der certo, vender depois → multiusuário desde já (ADR-0010).
 - [x] **Fotos:** **não** guardar — servem só para extrair as informações (ADR-0005).
 - [x] **Semana:** começa na **segunda**.
-- [x] **Moto:** o usuário informa a moto no app; a **IA pesquisa na internet** consumo, tanque e
-      plano de manutenção, mostra com as fontes, e o usuário aceita ou edita. Pode trocar de moto
-      e de consumo a qualquer momento (ADR-0008, ADR-0009).
+- [x] **Moto:** o usuário informa a moto; a **IA pesquisa na internet** consumo, tanque e plano de
+      manutenção, mostra com as fontes, e o usuário aceita ou edita. Pode trocar de moto e de
+      consumo a qualquer momento (ADR-0008, ADR-0009).
+- [x] **Combustível:** etanol ou gasolina; o abastecimento registra **valor total** e **litros**.
+- [x] **Notificações:** sem push por enquanto; avisos **dentro do app** (ADR-0013).
 - [ ] **Plataformas:** padrão iFood e 99Food, lista editável no app (confirmar se usa outras).
 
 ## Mudanças de escopo registradas
+- 🔁 **Stack trocada de iOS nativo (SwiftUI) para PWA Vue + Vuetify** (ADR-0011): Mac sem Xcode e
+  com pouco disco, Android é a maioria no Brasil e a stack já é dominada (MegaMente).
+- ❌ **Sem notificações push** (ADR-0013) — alertas de manutenção dentro do app.
 - ➕ **Minha moto com ficha pesquisada pela IA** (Grounding com Google Search) — cadastro manual
   na Sprint 2, sugestão por IA na Sprint 5.
 - ➕ **Troca de moto/consumo a qualquer momento** sem alterar relatórios passados (snapshot por turno).
@@ -28,106 +34,112 @@ nada quebra.
 ---
 
 ## 🗓️ Sprint 0 — Setup e fundações
-**Ambiente**
-- [ ] Instalar o **Xcode completo** (hoje só há Command Line Tools — ver SETUP.md)
-- [ ] Adicionar Apple ID no Xcode (Personal Team) e ativar Modo Desenvolvedor no iPhone
-- [ ] Rodar um "Hello World" no iPhone físico (validar assinatura gratuita)
-
 **Projeto**
-- [ ] Criar projeto Xcode `MotoboyContas` (SwiftUI, iOS 18+, Swift 6)
-- [ ] Criar pacotes locais `Packages/Domain`, `Packages/Data`, `Packages/DesignSystem`
-- [ ] Estrutura de pastas conforme [ARQUITETURA.md](./ARQUITETURA.md)
-- [ ] `AppContainer` (composition root / injeção de dependências)
-- [ ] `DesignSystem`: tokens (cores, tipografia, espaçamentos) + tema claro/escuro
+- [x] Vite + Vue 3 + TypeScript + Vuetify 4 (`vite-plugin-vuetify` com autoImport) + ícones MDI
+- [x] `.gitignore`, `.env.example`, `vercel.json` (rewrite SPA)
+- [x] Estrutura de pastas conforme [ARQUITETURA.md](./ARQUITETURA.md) (`domain/`, `data/`, `actions/`…)
+- [x] Vue Router + Pinia + `plugins/index.ts`
+- [x] Tema MotoboyContas claro/escuro em `plugins/vuetify.ts` + utilitário `.mc-glass`
+- [x] `AppLayout` mobile-first: barra de navegação inferior (Hoje, Novo, Resumo, Manutenção, Ajustes) + safe areas do iPhone (telas ainda como placeholder)
+- [x] PWA: `vite-plugin-pwa` (manifest, ícones, `apple-touch-icon`, service worker) — ícone provisório
 
-**Firebase**
-- [ ] Criar projeto Firebase (plano Spark) + app iOS + baixar `GoogleService-Info.plist`
-- [ ] Adicionar `firebase-ios-sdk` via SwiftPM (Auth, Firestore, AI Logic, App Check, Remote Config)
-- [ ] `FirebaseApp.configure()` no launch
+**Qualidade**
+- [x] Vitest + primeiros testes em `src/domain` (35 testes)
+- [x] ESLint com a regra de imports entre camadas (ADR-0012) — verificada com código de prova
+- [x] Scripts: `dev`, `build`, `test`, `type-check`, `lint`, `icons`
+
+**Firebase e deploy**
+- [ ] **(você)** Criar o projeto Firebase (Spark) + app Web → preencher o `.env` (ver [SETUP.md](./SETUP.md))
+- [ ] `services/firebase.ts` — feito na Sprint 2, quando o projeto existir
+- [ ] **(você)** Deploy na Vercel + instalar na tela de início do iPhone (validar o PWA)
 
 **Docs**
 - [x] Estrutura de documentação (`docs/`) e plano de sprints
-- [x] Responder as decisões iniciais (2026-09-15)
+- [x] Decisões iniciais (2026-09-15)
 
 ## 🗓️ Sprint 1 — Domínio e cálculos (sem Firebase)
-**Domain (pacote puro, testado)**
+**Domain (`src/domain`, puro e testado)**
 - [ ] Entidades: `Shift` (turno), `Earning`, `Expense`, `Fueling`, `MaintenanceItem`, `Platform`, `Motorcycle`
-- [ ] Value objects: `Money` (centavos), `Kilometers`, `DateRange` (dia/semana/mês)
-- [ ] Protocolos de repositório (`ShiftRepository`, `EarningRepository`…)
-- [ ] Calculadoras: lucro bruto/líquido, R$/km, consumo km/l, custo estimado de combustível,
-      reserva de manutenção — ver [REGRAS-DE-NEGOCIO.md](./REGRAS-DE-NEGOCIO.md)
-- [ ] Use cases: `StartShift`, `EndShift`, `AddEarning`, `AddExpense`, `AddFueling`, `GetPeriodSummary`
-- [ ] `EndShift` grava o **snapshot** dos cálculos (consumo, preço, custo, reserva) — ADR-0009
-- [ ] Km, consumo e manutenção sempre **por moto** (`motorcycleId`)
-- [ ] Abastecimento com **combustível (gasolina/etanol), valor total e litros** (preço/litro calculado);
-      consumo medido **por combustível**, ignorando tanques misturados
-- [ ] Testes (Swift Testing) cobrindo todas as fórmulas e casos de borda
+- [x] `money.ts` (`parseMoney("145,90")` → centavos) e `numbers.ts` (`parseDecimal`) — adiantado na Sprint 0
+- [ ] Calculadoras: lucro bruto/líquido, R$/km, preço/litro, consumo **por combustível** (tanque cheio,
+      ignorando tanques misturados), custo de combustível do turno, etanol × gasolina, reserva de
+      manutenção — ver [REGRAS-DE-NEGOCIO.md](./REGRAS-DE-NEGOCIO.md)
+      (já feitos na Sprint 0: `pricePerLiterCents`, `fuelCostCents`, `costPerKmCents`)
+- [ ] Ports: interfaces dos repositórios + `ReceiptExtractor` + `MotorcycleSpecsProvider`
+- [ ] Testes (Vitest) cobrindo todas as fórmulas e casos de borda
 
-**App (entrada manual, dados em memória)**
-- [ ] Repositórios `InMemory*` para desenvolver telas sem backend
-- [ ] Componentes base: `MCButton`, `MCCard`, `MCCurrencyField`, `MCNumberField`, `MCSegmentedPicker`
-- [ ] Tela **Hoje**: iniciar/encerrar turno (km inicial/final), lançar ganho/gasto
+**Actions + dados em memória**
+- [ ] Repositórios `data/memory/` + `data/container.ts`
+- [ ] Actions: `startShift`, `endShift` (grava o **snapshot** — ADR-0009), `addEarning`, `addExpense`,
+      `addFueling`, `getPeriodSummary`
+- [ ] Km, consumo e manutenção sempre **por moto** (`motorcycleId`)
+
+**Telas (entrada manual)**
+- [ ] Componentes: `McCurrencyField`, `McNumberField`, `McFuelTypeToggle`, `McStatCard`
+- [ ] Tela **Hoje**: iniciar/encerrar turno (km inicial/final), lançamentos do dia, "quanto guardar"
 - [ ] Tela **Novo registro** (manual): ganho, gasto, abastecimento (combustível, valor total, litros,
       km, tanque cheio?)
 
 ## 🗓️ Sprint 2 — Firebase: login e persistência
-- [ ] Auth e-mail/senha: cadastro, login, reset de senha, sair (ver ADR-0004)
+- [ ] Auth e-mail/senha: cadastro, login, reset de senha, sair (ADR-0004) + guardas de rota
 - [ ] Modelagem Firestore `users/{uid}/...` — ver [firebase/](./firebase/README.md)
-- [ ] Repositórios `Firestore*` no pacote `Data` (DTO ↔ entidade via mappers)
+- [ ] Repositórios `data/firestore/` com mappers; trocar no `container.ts` (sem mexer nas telas)
 - [ ] Cache offline do Firestore (lançar sem sinal, sincroniza depois)
 - [ ] `firestore.rules`: cada usuário só lê/escreve os próprios dados + publicar
-- [ ] Trocar `InMemory*` por `Firestore*` no `AppContainer` (sem mexer nas telas)
-- [ ] Tela **Ajustes**: plataformas, preço médio do litro
-- [ ] **Minha moto** (manual): marca, modelo, ano, cilindrada, consumo, tanque, intervalos de
-      manutenção; editar e **trocar de moto** a qualquer momento (ADR-0009)
+- [ ] Tela **Ajustes**: plataformas, preço padrão de gasolina e etanol
+- [ ] **Minha moto** (manual): marca, modelo, ano, cilindrada, flex?, consumo por combustível, tanque,
+      intervalos de manutenção; editar e **trocar de moto** a qualquer momento (ADR-0009)
 
 ## 🗓️ Sprint 3 — Relatórios e gráficos
-- [ ] Use case `GetPeriodSummary` ligado ao Firestore (dia / semana / mês)
-- [ ] Tela **Resumo**: seletor de período + cards (ganho, gasto, lucro, km, R$/km)
-- [ ] `MCPieChart` — ganhos por plataforma e gastos por categoria (Swift Charts `SectorMark`)
-- [ ] `MCLineChart` — evolução do lucro diário no mês
-- [ ] Tabela/lista de lançamentos do período (editar/excluir)
+- [ ] Escolher a biblioteca de gráficos (ADR): leve e boa no celular
+- [ ] `getPeriodSummary` ligado ao Firestore (dia / semana / mês)
+- [ ] Tela **Resumo**: `McPeriodPicker` + cards (ganho, gasto, lucro, km, R$/km)
+- [ ] `McPieChart` — ganhos por plataforma e gastos por categoria
+- [ ] `McLineChart` — evolução do lucro diário no mês
+- [ ] Lista/tabela de lançamentos do período (editar/excluir)
 - [ ] Comparativo mês a mês (lucro de cada mês)
 - [ ] Etanol × gasolina: R$/km de cada um com o consumo medido ("qual compensa hoje")
 
 ## 🗓️ Sprint 4 — Manutenção e reservas
-- [ ] Cadastro de itens de manutenção (óleo, relação, pneus, freios, revisão…) com
-      intervalo em km e/ou dias e custo estimado
+- [ ] Itens de manutenção (óleo, relação, pneus, freios, revisão…) com intervalo em km e/ou dias
+      e custo estimado
 - [ ] Registrar "fiz a troca" (km + data + valor real)
-- [ ] Progresso até a próxima troca ("faltam 300 km") + alertas
+- [ ] Progresso até a próxima troca ("faltam 300 km") com `McProgressBar`
 - [ ] **Reserva de manutenção** por km rodado, somada no resumo do dia/semana
-- [ ] Notificações locais quando um item estiver perto do vencimento
+- [ ] Avisos **dentro do app** (ADR-0013): `McAlertBanner` na tela Hoje + badge na aba Manutenção
 
 ## 🗓️ Sprint 5 — IA: print/foto → dados
-- [ ] Firebase AI Logic com Gemini Developer API (modelo via Remote Config — ADR-0006)
-- [ ] App Check (obrigatório para AI Logic a partir de 02/11/2026 — ver [ia/](./ia/README.md))
-- [ ] `PhotosPicker` (galeria/prints) + câmera
+- [ ] Firebase AI Logic (`firebase/ai`) com Gemini Developer API; modelo via Remote Config (ADR-0006)
+- [ ] App Check com **reCAPTCHA Enterprise** (obrigatório para AI Logic a partir de 02/11/2026) +
+      debug token em desenvolvimento — ver [ia/](./ia/README.md)
+- [ ] `McImagePicker`: câmera/galeria + redimensionar no canvas antes de enviar
 - [ ] Extratores com saída JSON estruturada:
   - [ ] Print de ganhos (iFood / 99Food)
   - [ ] Foto do painel (odômetro; nível de combustível aproximado)
   - [ ] Cupom do posto ou visor da bomba (combustível, valor total, litros, preço/litro)
 - [ ] Tela **Confirmar leitura**: campos pré-preenchidos e editáveis → salvar
-- [ ] Salvar `aiExtractions` (texto/JSON extraído + status) para auditoria
+- [ ] Salvar `aiExtractions` (JSON extraído + status) para auditoria
 - [ ] Tratamento de erro/limite de cota → cai para o formulário manual
 
 **Ficha da moto pela IA (ADR-0008)**
 - [ ] `MotorcycleSpecsProvider` com **Grounding with Google Search** (marca/modelo/ano → ficha + fontes)
 - [ ] Validar se o modelo aceita JSON schema junto com a pesquisa (senão, 2ª chamada para estruturar)
-- [ ] Tela **Ficha sugerida**: valores editáveis, fontes com link, sugestões de busca do Google
-      (exigência dos termos) e aviso de consumo de fabricante × uso real
+- [ ] Tela **Ficha sugerida**: valores editáveis, `McSourceList`, `McSearchSuggestions` (exigência dos
+      termos) e aviso de consumo de fabricante × uso real
 - [ ] Sugerir trocar para o **consumo medido** quando houver 2 abastecimentos com tanque cheio
 
 ## 🗓️ Sprint 6 — Polimento
-- [ ] Onboarding: cadastrar moto → IA sugere a ficha → confirmar → plataformas → itens de manutenção
-- [ ] Ícone, tela de abertura, estados vazios e de carregamento
+- [ ] Onboarding: como instalar na tela de início → cadastrar moto (IA) → plataformas → itens de manutenção
+- [ ] Ícones, tela de abertura, estados vazios e de carregamento
 - [ ] Exportar CSV do período
-- [ ] Revisão de acessibilidade (Dynamic Type, VoiceOver) e modo escuro
-- [ ] Decidir distribuição: continuar Personal Team (7 dias) ou Apple Developer (TestFlight)
+- [ ] Acessibilidade, modo escuro e efeito vidro (`.mc-glass`) nos pontos certos
+- [ ] Uma semana de uso real no iPhone e ajustes
 
 ## 🔮 Futuro (fora do escopo atual)
-- Android (Kotlin/Compose ou KMP reaproveitando as regras do `Domain`)
-- Guardar fotos no Storage (exige Blaze)
-- Widgets e Live Activity do turno (App Groups exigem conta paga)
+- Notificações push (FCM + Cloud Functions → plano Blaze)
+- Guardar fotos no Storage (plano Blaze)
+- 📱 **Fase App (planejada, depois do PWA validado):** apps nas lojas com Expo/React Native,
+  reaproveitando `src/domain`
 - Metas de ganho diário/semanal
-- **Virar produto** (ADR-0010): Apple Developer + App Store, Sign in with Apple, assinatura,
-  termos/LGPD, plano pago do Gemini e custo de IA por usuário
+- **Virar produto** (ADR-0010): domínio próprio, assinatura, termos/LGPD, plano pago do Gemini e
+  custo de IA por usuário

@@ -4,6 +4,86 @@ Registro do que foi feito, quando e por quê. Ordem cronológica (mais recente n
 
 ---
 
+## 2026-09-15 — Paleta azul-aqua (tons pastéis)
+
+**Contexto:** Ao rodar o app, o usuário não gostou do verde. Pediu **azul, tons pastéis, azul-aqua**.
+
+**Feito:**
+- `plugins/vuetify.ts`: nova paleta nos temas claro e escuro, com token novo `aqua` (pastel, para
+  detalhes e gráficos). Combustível virou âmbar suave e manutenção lavanda-azul, para combinar.
+- **Acessibilidade:** pastel puro não é legível como texto sobre branco. No tema **claro** o `primary`
+  é um aqua mais fechado (`#157499`) e os pastéis ficam nos fundos (`surface-variant`, tonais); no
+  **escuro** os pastéis são as próprias cores de destaque (`#7FD1E6`). Contraste calculado (WCAG):
+  todos os pares texto/fundo ≥ 4,5 (claro) e entre 7 e 10 (escuro).
+- Ícone provisório em degradê aqua → azul; `theme-color` (index.html) e manifest atualizados;
+  ícones do PWA gerados de novo.
+
+**Verificação:** testes, type-check, lint e build sem erros.
+
+---
+
+## 2026-09-15 — Sprint 0: projeto Vue + Vuetify + PWA
+
+**Feito:**
+- Projeto **Vite 8 + Vue 3.5 + TypeScript 6.0 + Vuetify 4.2 + Pinia 3 + Vue Router 5** (mesma base do MegaMente).
+- Pastas das camadas criadas (vazias com `.gitkeep` até receberem código).
+- Tema claro/escuro seguindo o celular (verde = lucro, âmbar = combustível, azul = manutenção),
+  fonte do sistema (SF Pro no iPhone) e utilitário `.mc-glass`.
+- `AppLayout` com cabeçalho e barra de navegação inferior (Hoje, Novo, Resumo, Manutenção,
+  Ajustes) + safe areas do iPhone; 5 telas placeholder.
+- PWA com `vite-plugin-pwa` (manifest, service worker `autoUpdate`) e ícones gerados a partir de
+  `public/favicon.svg` (ícone provisório: duas rodas + linha de lucro).
+- `domain`: `parseMoney`, `parseDecimal`, `pricePerLiterCents`, `fuelCostCents`, `costPerKmCents`
+  com **35 testes** usando os exemplos da REGRAS-DE-NEGOCIO.
+- ESLint com a **regra de camadas** (`no-restricted-imports` com regex + `no-restricted-globals` no
+  `domain`). Verificada com código de prova via stdin: acusou `vue`, `@/data` e `localStorage` no
+  `domain`, e `@/data` numa page.
+- `.env.example`, `vercel.json` (rewrite SPA + `sw.js` sem cache), `index.html` com as metas do iPhone.
+
+**Verificação:** `npm test` (35 ok), `npm run type-check`, `npm run lint` e `npm run build` sem
+erros. O build gera `manifest.webmanifest` e `sw.js`, e o `index.html` registra o service worker.
+
+**Decisões pequenas:**
+- TypeScript fixado em `~6.0` (o `typescript-eslint` ainda não aceita o TS 7) e
+  `@vite-pwa/assets-generator` em `^1` (o `vite-plugin-pwa` 1.3 ainda não aceita o 2).
+- Preço por litro é **taxa** com 3 casas → centavos com fração; só totais são inteiros (REGRAS, ADR-0007).
+- `services/firebase.ts` fica para a Sprint 2, quando o projeto Firebase existir.
+
+**Atenção:** o CSS do Vuetify vai inteiro (~540 kB, 86 kB gzip) — otimizar na Sprint 6.
+
+**Pendente (usuário):** criar o projeto Firebase; deploy na Vercel e instalar no iPhone.
+
+---
+
+## 2026-09-15 — Troca de stack: PWA com Vue + Vuetify
+
+**Contexto:**
+- Ao preparar a Sprint 0 (SwiftUI): o Mac tem **só Command Line Tools** e **~27 GB livres**.
+  Testado com um pacote de prova: `swift test` falha com `no such module 'Testing'` sem Xcode.
+- Avaliado **React Native/Expo**: adia o Xcode mas não elimina (`@react-native-firebase` não roda
+  no Expo Go; App Check é nativo; build no aparelho exige Xcode ou conta Apple paga). Tem efeito
+  glass via `expo-glass-effect`.
+- **Android ≈ 81%** dos celulares no Brasil, e há intenção de vender.
+- O usuário propôs **web com Vuetify** (Tailwind opcional), stack que já usa no MegaMente, e
+  confirmou que **não precisa de notificação** agora.
+
+**Decisões:** PWA Vue 3 + TS + Vuetify 4, sem Tailwind → **ADR-0011**; camadas em TypeScript com
+`domain` puro → **ADR-0012**; avisos dentro do app, sem push → **ADR-0013**. ADR-0001 e ADR-0002
+marcados como substituídos.
+
+**Feito (docs):**
+- Reescritos: README, CLAUDE.md, `.gitignore` (Node/Vite), `docs/README`, SETUP, ARQUITETURA,
+  componentes (wrappers `Mc*` estilo MegaMente, efeito `.mc-glass`), SPRINTS.
+- Ajustados para web: ADR-0004, 0006, 0007, 0008, 0010; firebase/ (SDK Web, cache offline no
+  IndexedDB, App Check com reCAPTCHA); ia/ (`firebase/ai`, Tesseract.js como plano B); fluxos/
+  (barra inferior, safe areas, avisos no app); REGRAS (testes com Vitest).
+
+**Continua valendo:** regras de negócio, modelagem do Firestore, IA, etanol × gasolina, snapshot por turno.
+
+**Próximo:** Sprint 0 — projeto Vite + Vue + Vuetify, estrutura de pastas e Vitest rodando.
+
+---
+
 ## 2026-09-15 — Etanol ou gasolina
 
 **Contexto:** A moto pode ser abastecida com **etanol ou gasolina**, e o abastecimento precisa

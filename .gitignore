@@ -1,22 +1,37 @@
-# Xcode
-DerivedData/
-build/
-*.xcuserstate
-xcuserdata/
-*.xcscmblueprint
-*.xccheckout
+# Dependências
+node_modules/
 
-# Swift Package Manager
-.build/
-.swiftpm/
-Packages/*/.build/
+# Build
+dist/
+dist-ssr/
+dev-dist/
+*.local
 
-# Firebase (config do projeto — cada dev baixa o seu no Console; ver docs/SETUP.md)
-GoogleService-Info.plist
+# Variáveis de ambiente (chaves do Firebase, debug token do App Check)
+.env
+.env.*
+!.env.example
 
-# Segredos locais
-*.xcconfig.local
-Secrets.xcconfig
+# Firebase CLI
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
 
-# macOS
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editores / IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.sw?
 .DS_Store
+
+# Cache / testes
+.cache/
+.temp/
+.vite/
+coverage/
+*.tsbuildinfo

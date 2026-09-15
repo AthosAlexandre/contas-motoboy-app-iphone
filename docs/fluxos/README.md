@@ -12,7 +12,7 @@ Abrir app
    │
    ├─ logado sem moto ─► Minha moto (marca/modelo/ano) ─► Ficha sugerida (IA + fontes) ─► Plataformas
    │
-   └─ logado ─► TabView
+   └─ logado ─► AppLayout (barra de navegação inferior)
                  ├─ 🏠 Hoje          turno atual, lançamentos do dia, "quanto guardar"
                  ├─ ➕ Novo registro  [📸 Foto/print]  [✍️ Manual]
                  ├─ 📊 Resumo        dia / semana / mês, gráficos, tabela
@@ -38,3 +38,6 @@ O entregador usa o app **cansado, no fim do dia, às vezes de luva**. Por isso:
 - Botão de **foto/print grande** e em evidência na tela Hoje.
 - No máximo **2 toques** para confirmar uma leitura da IA.
 - Campos numéricos com teclado numérico e botões grandes.
+- **Mobile-first:** respeitar as safe areas do iPhone (notch e barra inferior); alvo de toque ≥ 48 px.
+- **Avisos dentro do app** (manutenção vencendo, turno em aberto): banner na tela Hoje e badge na
+  aba Manutenção — sem push (ADR-0013).

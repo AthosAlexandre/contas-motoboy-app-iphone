@@ -1,7 +1,7 @@
 # 📐 Regras de negócio — MotoboyContas
 
-Entidades, fórmulas e casos de borda. Tudo aqui vira código no pacote `Domain`
-(`Calculators/`) **com teste**. Mudou uma fórmula → atualiza aqui e no teste.
+Entidades, fórmulas e casos de borda. Tudo aqui vira código em `src/domain`
+(`calculators/`) **com teste** (Vitest). Mudou uma fórmula → atualiza aqui e no teste.
 
 > Valores em dinheiro são **centavos** (ADR-0007). Exemplos abaixo em R$ só para leitura.
 
@@ -34,7 +34,9 @@ kmRodados = kmFinal − kmInicial
 Cada ida ao posto registra:
 - **Combustível:** `gasolina` ou `etanol` (gasolina comum, aditivada ou premium contam como gasolina).
 - **Valor total** pago (R$) e **litros** colocados — os **dois obrigatórios**.
-- **Preço/litro é calculado:** `preçoLitro = valorTotal / litros`. Se o cupom/bomba também mostrar o
+- **Preço/litro é calculado:** `preçoLitro = valorTotal / litros`. É uma **taxa**, não um valor em
+  dinheiro: pode ter 3 casas (R$ 6,199) e fica em centavos **com fração** (619,9). Só totais em
+  dinheiro são centavos inteiros. Se o cupom/bomba também mostrar o
   preço e `|litros × preço − valorTotal| > R$ 0,05`, os campos ficam destacados para revisão.
 - Km no odômetro e se completou o **tanque cheio**.
 

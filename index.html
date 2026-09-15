@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- viewport-fit=cover: ocupa a tela toda no iPhone; as safe areas são tratadas no CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>MotoboyContas</title>
+    <meta name="description" content="Ganhos, combustível e manutenção da moto — o lucro real do dia, da semana e do mês." />
+    <!-- App pessoal por enquanto: fora dos buscadores -->
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#F3F8FA" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0C1419" media="(prefers-color-scheme: dark)" />
+
+    <!-- PWA no iPhone (Safari → Compartilhar → Adicionar à Tela de Início) -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="MotoboyContas" />
+
+    <!-- Ícones (gerados por `npm run icons`) -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

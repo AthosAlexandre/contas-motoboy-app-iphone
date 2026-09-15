@@ -5,7 +5,9 @@ Auth, modelagem do Firestore, regras de segurança, App Check e Remote Config.
 > Ainda **não configurado** — este é o rascunho. Preencher conforme implementarmos (Sprint 2).
 
 ## Plano
-- **Spark** (gratuito). Nada que exija Blaze na v1: sem Storage (ADR-0005), sem Cloud Functions.
+- **Spark** (gratuito). Nada que exija Blaze na v1: sem Storage (ADR-0005), sem Cloud Functions,
+  sem push (ADR-0013).
+- **SDK Web v12** (`firebase`), inicializado em `src/services/firebase.ts` — mesmo padrão do MegaMente.
 
 ## Autenticação
 | Provedor | Status | Observação |
@@ -39,7 +41,7 @@ users/{uid}/aiExtractions/{id}           leituras da IA (auditoria)
 | `shifts` | motorcycleId, startedAt, endedAt?, kmStart, kmEnd?, fuelLevelStart?, fuelLevelEnd?, day (`yyyy-MM-dd`); **snapshot ao encerrar:** fuelTypeUsed, kmPerLiterUsed, fuelPriceCentsUsed, fuelCostCents, maintenanceReserveCents |
 | `earnings` | platformId, amountCents, tipCents?, date, day, shiftId?, source (`manual`/`ai`), aiExtractionId? |
 | `expenses` | category, amountCents, description?, date, day, source, aiExtractionId? |
-| `fuelings` | motorcycleId, fuelType (`gasoline`/`ethanol`), totalCents, liters, pricePerLiterCents (calculado = total ÷ litros), odometerKm, fullTank, date, day, source, aiExtractionId? |
+| `fuelings` | motorcycleId, fuelType (`gasoline`/`ethanol`), totalCents, liters, pricePerLiterCents (calculado = total ÷ litros; decimal, ex.: 619.9), odometerKm, fullTank, date, day, source, aiExtractionId? |
 | `maintenanceItems` | motorcycleId, name, intervalKm, intervalDays?, estimatedCostCents, lastKm, lastDate |
 | `maintenanceRecords` | itemId, odometerKm, date, costCents |
 | `aiExtractions` | kind (`earningsScreenshot`/`dashboard`/`fuelReceipt`/`motorcycleSpecs`), model, rawJson, status (`pending`/`confirmed`/`discarded`), createdAt |
@@ -66,11 +68,14 @@ service cloud.firestore {
 - 🔜 Validar tipos/valores nas regras (ex.: `amountCents is int && amountCents >= 0`).
 
 ## Offline
-- Cache persistente do Firestore ligado (padrão no iOS). Lançamentos feitos sem sinal ficam
-  pendentes e sobem quando a conexão volta.
+- Cache persistente do Firestore no navegador (IndexedDB):
+  `initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })`.
+  Lançamentos feitos sem sinal ficam pendentes e sobem quando a conexão volta.
 
 ## App Check
 - Obrigatório para o AI Logic a partir de **02/11/2026**. Detalhes em [ia/](../ia/README.md).
+- Provedor web: **reCAPTCHA Enterprise** (domínio da Vercel). Desenvolvimento: **debug token**
+  (`VITE_APPCHECK_DEBUG_TOKEN`, cadastrado no Console).
 
 ## Remote Config
 | Parâmetro | Padrão | Uso |

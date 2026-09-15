@@ -2,162 +2,158 @@
 
 ## Visão geral
 
-**Clean Architecture + MVVM**, com as camadas separadas em **pacotes Swift locais**. Separar em
-pacotes não é enfeite: o compilador **impede** que uma camada importe o que não deve (ex.: o
-`Domain` simplesmente não tem o Firebase disponível). Ver ADR-0002.
+PWA mobile-first em **Vue 3 + TypeScript + Vuetify**, organizada em camadas no estilo
+**Clean Architecture (ports & adapters)**. A estrutura de pastas é a mesma do MegaMente, com duas
+pastas a mais: `domain/` (regras puras) e `data/` (implementações com Firebase e IA). Ver ADR-0011
+e ADR-0012.
 
 Objetivos:
-- **Regras de negócio puras e testadas** (lucro, consumo, reserva) — sem Firebase, sem UI.
-- **Views burras**: só apresentação; estado e ações ficam no ViewModel.
-- **Trocar a infraestrutura sem mexer nas telas**: repositório em memória → Firestore; Gemini → outro modelo.
-- **Facilitar o port para Android**: o `Domain` é Swift puro, tradução quase 1:1 para Kotlin.
+- **Regras de negócio puras e testadas** (lucro, consumo, reserva) — sem Vue, sem Firebase, testes rápidos no Node.
+- **Telas burras**: pages montam componentes e chamam hooks/actions; nenhuma regra de negócio.
+- **Trocar a infraestrutura sem mexer nas telas**: dados em memória ↔ Firestore; Gemini → outro modelo.
+- **Reaproveitar o `domain`** no app de loja (Expo/React Native) planejado para depois do PWA — por
+  isso `domain` não usa nenhuma API de navegador (`window`, `document`, `localStorage`…).
 
 ## Camadas e regra de dependência
 
 ```
-                ┌──────────────────────────┐
-                │           App            │  composition root: cria tudo e injeta
-                └────────────┬─────────────┘
-          ┌──────────────────┼───────────────────┐
-          ▼                  ▼                   ▼
-  ┌───────────────┐  ┌───────────────┐   ┌───────────────┐
-  │   Features    │  │     Data      │   │ DesignSystem  │
-  │ Views + VMs   │  │ Firebase, IA  │   │ componentes   │
-  └──────┬────────┘  └──────┬────────┘   └───────────────┘
-         │                  │                   ▲
-         ▼                  ▼                   │
-      ┌──────────────────────────┐              │
-      │          Domain          │   Features ──┘
-      │ entidades, use cases,    │
-      │ protocolos, calculadoras │
-      └──────────────────────────┘
+   pages · templates · components (Mc*)      ← apresentação (Vue + Vuetify)
+                    │
+                    ▼
+            hooks · stores (Pinia)            ← estado de tela e estado global
+                    │
+                    ▼
+                 actions                      ← casos de uso: orquestram regra + persistência
+                 │       │
+                 ▼       ▼
+             domain ◄── data                  ← data implementa as interfaces (ports) do domain
+            (puro)       │
+                         ▼
+                     services                 ← SDKs inicializados (Firebase, AI, App Check)
 ```
 
-As setas apontam **para dentro**: tudo depende do `Domain`; o `Domain` não depende de nada.
+| Pasta | Pode importar | **Não** pode importar |
+|-------|---------------|------------------------|
+| `domain/` | nada (TypeScript puro) | vue, vuetify, firebase, qualquer outra pasta do app |
+| `data/` | domain, services | vue, pages, components, stores, hooks |
+| `services/` | firebase | resto do app |
+| `actions/` | domain, data | vue, pages, components |
+| `stores/`, `hooks/` | actions, domain (tipos), lib | services, data |
+| `pages/`, `templates/` | hooks, stores, actions, components, lib, domain (tipos) | **services, data, firebase** |
+| `components/` (`Mc*`) | vuetify, lib | domain, data, actions, stores, services |
+| `lib/` | nada do app | — |
 
-| Camada | Pode importar | **Não** pode importar |
-|--------|---------------|------------------------|
-| `Domain` | Foundation | SwiftUI, Firebase, qualquer outra camada |
-| `Data` | Domain, Firebase | SwiftUI, Features, DesignSystem |
-| `DesignSystem` | SwiftUI, Charts | Domain, Data, Firebase |
-| `Features` (app) | Domain, DesignSystem, SwiftUI | **Firebase**, Data |
-| `App` (app) | tudo | — |
-
-> Regra prática: **View nunca fala com Firebase**. View → ViewModel → Use case → Protocolo de
-> repositório. Quem implementa o protocolo com Firebase é o `Data`, e quem liga os dois é o `App`.
+> Regra prática (igual ao MegaMente): **page não fala direto com o Firebase**. Page → hook/store →
+> action → domain + data → services. A regra é verificada pelo ESLint (`no-restricted-imports`) —
+> ADR-0012.
 
 ## Estrutura de pastas
 
 ```
 contas-motoboy-app-iphone/
-├── MotoboyContas.xcodeproj
-├── MotoboyContas/                        # target do app
-│   ├── App/
-│   │   ├── MotoboyContasApp.swift        # @main, FirebaseApp.configure()
-│   │   ├── AppContainer.swift            # cria repositórios/use cases e injeta nas features
-│   │   └── RootView.swift                # decide: login ou TabView principal
-│   ├── Features/
-│   │   ├── Auth/        { Views/, ViewModels/ }
-│   │   ├── Today/       { Views/, ViewModels/ }   # turno atual (tela inicial)
-│   │   ├── Entry/       { Views/, ViewModels/ }   # novo registro: manual e por foto
-│   │   ├── Reports/     { Views/, ViewModels/ }   # dia / semana / mês, gráficos
-│   │   ├── Maintenance/ { Views/, ViewModels/ }
-│   │   ├── Motorcycle/  { Views/, ViewModels/ }   # minha moto + ficha sugerida pela IA
-│   │   └── Settings/    { Views/, ViewModels/ }
-│   └── Resources/
-│       ├── Assets.xcassets
-│       └── GoogleService-Info.plist      # fora do git
-│
-├── Packages/
-│   ├── Domain/                           # Swift puro, zero dependências
-│   │   ├── Sources/Domain/
-│   │   │   ├── Entities/                 # Shift, Earning, Expense, Fueling, MaintenanceItem, Platform, Motorcycle
-│   │   │   ├── ValueObjects/             # Money, Kilometers, DateRange
-│   │   │   ├── Repositories/             # protocolos (ShiftRepository, …)
-│   │   │   ├── Services/                 # protocolos de serviços externos (ReceiptExtractor, MotorcycleSpecsProvider)
-│   │   │   ├── Calculators/              # ProfitCalculator, FuelCalculator, MaintenanceReserveCalculator
-│   │   │   └── UseCases/                 # StartShift, AddEarning, GetPeriodSummary, …
-│   │   └── Tests/DomainTests/
-│   │
-│   ├── Data/                             # implementações concretas
-│   │   └── Sources/Data/
-│   │       ├── Firestore/                # Firestore*Repository + DTOs + Mappers
-│   │       ├── InMemory/                 # InMemory*Repository (dev, previews, testes)
-│   │       ├── Auth/                     # FirebaseAuthService
-│   │       └── AI/                       # GeminiExtractor, GeminiMotorcycleSpecsProvider (Grounding), prompts, schemas
-│   │
-│   └── DesignSystem/
-│       └── Sources/DesignSystem/
-│           ├── Tokens/                   # cores, tipografia, espaçamentos, raios
-│           ├── Components/               # MCButton, MCCard, MCCurrencyField, MCStatTile…
-│           └── Charts/                   # MCPieChart, MCLineChart
-│
-└── docs/
+├── index.html
+├── vite.config.ts              # vue + vuetify (autoImport) + PWA (manifest, service worker)
+├── vercel.json                 # rewrite SPA
+├── firestore.rules
+├── .env.example
+├── public/                     # ícones do PWA, apple-touch-icon
+├── src/
+│   ├── main.ts
+│   ├── App.vue
+│   ├── domain/                 # 🧠 PURO — sem Vue/Firebase. 100% testado.
+│   │   ├── entities/           # types: Shift, Earning, Expense, Fueling, Motorcycle, MaintenanceItem, Platform
+│   │   ├── money.ts            # centavos: parseMoney("145,90") → 14590
+│   │   ├── numbers.ts          # decimais que não são dinheiro: parseDecimal("8,437") → 8.437
+│   │   ├── calculators/        # profit.ts, fuel.ts (consumo por combustível), maintenance.ts, period.ts
+│   │   ├── ports/              # interfaces: ShiftRepository, FuelingRepository, ReceiptExtractor, MotorcycleSpecsProvider…
+│   │   └── errors.ts           # DomainError
+│   ├── data/                   # 🔌 implementações das ports
+│   │   ├── firestore/          # repositórios + mappers (documento ↔ entidade)
+│   │   ├── memory/             # repositórios em memória (dev sem Firebase, testes)
+│   │   ├── ai/                 # extractors Gemini, ficha da moto (Grounding), prompts, schemas
+│   │   └── container.ts        # escolhe firestore ou memory (VITE_DATA_SOURCE) e exporta os repositórios
+│   ├── actions/                # casos de uso: startShift, endShift (snapshot), addFueling, getPeriodSummary…
+│   ├── services/               # firebase.ts (app, auth, db com cache offline, appCheck, ai), remoteConfig.ts
+│   ├── stores/                 # Pinia: user, activeMotorcycle, openShift
+│   ├── hooks/                  # composables useX: usePeriodSummary, useImageExtraction…
+│   ├── components/             # wrappers Mc* — ver docs/componentes
+│   ├── pages/                  # uma page = uma rota: today/, entry/, reports/, maintenance/, motorcycle/, settings/, auth/
+│   ├── templates/              # AuthLayout, AppLayout (barra de navegação inferior + safe areas)
+│   ├── routes/                 # Vue Router + guardas (logado → tem moto → app)
+│   ├── plugins/                # vuetify.ts (tema claro/escuro), index.ts
+│   ├── lib/                    # helpers de UI: formatadores (R$, km, datas), firebaseErrors, resizeImage
+│   └── assets/styles/          # main.css (inclui o utilitário .mc-glass)
+└── tests/
+    └── unit/                   # Vitest: domain/ e actions/ (com repositórios em memória)
 ```
 
 ## Padrões por camada
 
-### Domain
-- **Entidades** são `struct` `Sendable`, `Equatable`, `Identifiable`.
-- **Dinheiro em centavos** (`Money` envolvendo `Int`) — nunca `Double` (ADR-0007).
-- **Use case** = um `struct` com uma ação, que recebe os protocolos pelo `init`:
-  ```swift
-  public struct AddEarning: Sendable {
-      private let repository: EarningRepository
-      public init(repository: EarningRepository) { self.repository = repository }
-
-      public func callAsFunction(_ earning: Earning) async throws {
-          guard earning.amount.cents > 0 else { throw DomainError.invalidAmount }
-          try await repository.save(earning)
-      }
+### domain
+- `type`/`interface` + **funções puras**. Sem classes com estado, sem `async`.
+- Dinheiro em **centavos inteiros** (ADR-0007), com um único `parseMoney()`.
+  ```ts
+  // src/domain/calculators/fuel.ts
+  export function fuelCostCents(km: number, kmPerLiter: number, pricePerLiterCents: number): number {
+    if (km <= 0 || kmPerLiter <= 0) return 0
+    return Math.round((km / kmPerLiter) * pricePerLiterCents)
   }
   ```
-- **Calculadoras** são funções puras (entrada → saída), fáceis de testar.
 
-### Data
-- Cada repositório Firestore converte **DTO ↔ entidade** num `Mapper`. O formato do banco pode
-  mudar sem afetar o `Domain`.
-- A IA implementa o protocolo `Domain.ReceiptExtractor`; o app não sabe que é Gemini.
+### data
+- Cada repositório Firestore converte **documento ↔ entidade** num mapper: o formato do banco pode
+  mudar sem afetar o `domain`.
+- A IA implementa `ReceiptExtractor` e `MotorcycleSpecsProvider`; fora de `data/ai` ninguém sabe que é Gemini.
+- `container.ts` é o único lugar que decide qual implementação usar.
 
-### Features (MVVM)
-- **ViewModel**: `@Observable @MainActor final class`, recebe use cases no `init`, expõe estado
-  (`isLoading`, `errorMessage`, dados formatados) e ações (`func save() async`).
-- **View**: lê o ViewModel, monta com componentes do `DesignSystem`, chama ações. Sem regra de negócio.
-- **Previews** usam repositórios `InMemory*` — telas desenvolvidas sem internet nem Firebase.
+### actions (casos de uso)
+- Uma função por ação do usuário: valida com o `domain` e persiste pelos repositórios do container.
+  ```ts
+  // src/actions/fuelings.ts
+  import { repos } from '@/data/container'
+  import { DomainError } from '@/domain/errors'
+  import { pricePerLiterCents } from '@/domain/calculators/fuel'
+  import type { NewFueling } from '@/domain/entities'
 
-### DesignSystem
-- Componentes reutilizáveis, sem conhecer `Domain`. Recebem valores simples (`String`, `Int`,
-  `Binding`) e closures. Convenção de "props", bindings e slots em
+  export async function addFueling(input: NewFueling) {
+    if (input.totalCents <= 0 || input.liters <= 0) throw new DomainError('invalid-fueling')
+    return repos.fuelings.save({
+      ...input,
+      pricePerLiterCents: pricePerLiterCents(input.totalCents, input.liters),
+    })
+  }
+  ```
+
+### stores e hooks
+- **Pinia** para estado global (usuário, moto ativa, turno aberto).
+- **Hooks** (composables) para o estado de uma tela: `loading`, `error`, dados já formatados.
+
+### pages e components
+- Pages montam a tela com componentes `Mc*` e chamam hooks/actions. Sem regra de negócio.
+- `Mc*` são wrappers do Vuetify com props tipadas, `defineModel` e slots — ver
   [componentes/README.md](./componentes/README.md).
 
-## Fluxo de dados — lançar ganho por print
+## Fluxo de dados — abastecimento pela foto do cupom
 
 ```
-Usuário escolhe print do iFood (PhotosPicker)
-        │
+Usuário toca 📸 e fotografa o cupom (McImagePicker → <input type="file" accept="image/*">)
+        │  redimensiona no canvas (~1600 px, JPEG)
         ▼
-EntryViewModel.extract(image)
-        │  use case ExtractFromImage
+useImageExtraction → action extractFromImage('fuelReceipt', imagem)
         ▼
-ReceiptExtractor (protocolo do Domain)
-        │  implementado por Data/AI/GeminiExtractor
+ReceiptExtractor (port do domain) ── implementado por data/ai (Firebase AI Logic + App Check)
         ▼
-Firebase AI Logic → Gemini (JSON estruturado)
-        │
+JSON { fuelType, totalAmount, liters, pricePerLiter, confidence }
         ▼
-ExtractionResult { plataforma, valor, data, confiança }
-        │
-        ▼
-Tela "Confirmar leitura" (campos editáveis, MCCurrencyField)
+Tela "Confirmar leitura" (McCurrencyField, McNumberField, McFuelTypeToggle) — campos editáveis
         │  usuário confirma
         ▼
-AddEarning (use case) ──► EarningRepository ──► Firestore users/{uid}/earnings
-        │
+action addFueling ──► repos.fuelings (Firestore com cache offline) ──► users/{uid}/fuelings
         ▼
-GetPeriodSummary recalcula → Resumo/gráficos atualizam
+stores/hooks recalculam → telas Hoje e Resumo atualizam
 ```
 
-A entrada manual é o **mesmo fluxo sem as 4 primeiras etapas**.
+A entrada manual é o **mesmo fluxo sem as 3 primeiras etapas**.
 
 ## Referências cruzadas
 - Decisões que justificam essas escolhas: [DECISOES.md](./DECISOES.md).

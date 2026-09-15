@@ -8,7 +8,7 @@ Registro cronológico das decisões de arquitetura. Formato leve inspirado em AD
 ## ADR-0001 — iOS nativo com SwiftUI (iOS 18+, Swift 6)
 
 **Data:** 2026-09-15
-**Status:** Aceito
+**Status:** ❌ Substituído pelo ADR-0011 (2026-09-15)
 
 **Contexto:** O foco é validar a ideia no próprio iPhone, desenvolvendo num MacBook. Existe a
 intenção de ter Android no futuro.
@@ -39,7 +39,7 @@ Recursos exclusivos do iOS 26 podem ser usados com `if #available`.
 ## ADR-0002 — Clean Architecture + MVVM com camadas em pacotes SwiftPM locais
 
 **Data:** 2026-09-15
-**Status:** Aceito
+**Status:** ❌ Substituído pelo ADR-0012 (2026-09-15)
 
 **Contexto:** Queremos arquitetura limpa, componentização e reuso, e a garantia de que regras de
 negócio não fiquem misturadas com Firebase ou telas.
@@ -91,6 +91,9 @@ plano **Spark** (gratuito).
 **Data:** 2026-09-15
 **Status:** Aceito
 
+> **Revisado em 2026-09-15 (stack web, ADR-0011):** decisão mantida. Na web, "Entrar com Apple"
+> também exige o Apple Developer Program (Services ID).
+
 **Contexto:** A ideia inicial era login com Apple ID. Porém a **conta Apple gratuita (Personal
 Team) não suporta a capability "Sign in with Apple"** (nem Push, iCloud, App Groups).
 
@@ -139,7 +142,7 @@ tomou a decisão de evitar Storage pelo mesmo motivo.
 `gemini-1.5-flash` e a chave de API no código. Verificado em 2026-09-15:
 - A família **Gemini 1.5 já foi desligada** (requisições retornam 404); 2.0 desligou em 01/06/2026
   e 2.5 está prevista para desligar em outubro/2026.
-- O caminho oficial para apps é o **Firebase AI Logic** (parte do `firebase-ios-sdk`), que evita
+- O caminho oficial para apps é o **Firebase AI Logic** (SDKs para iOS, Android e **Web**), que evita
   expor a chave no app e funciona no **plano Spark** com o free tier do Gemini Developer API.
 - **App Check passa a ser obrigatório no AI Logic a partir de 02/11/2026.**
 
@@ -149,7 +152,7 @@ estruturado** (schema), e **nome do modelo vindo do Remote Config** (padrão atu
 
 **Alternativas consideradas:**
 - **SDK Gemini direto com API key no app** — chave extraível do binário; sem App Check.
-- **Apple Vision (OCR no aparelho)** — grátis e offline, mas só devolve texto solto; interpretar
+- **OCR no aparelho** (Apple Vision; na web, Tesseract.js) — grátis e offline, mas só devolve texto solto; interpretar
   "o que é ganho, o que é taxa" fica com a gente. Bom **plano B** para odômetro.
 - **Backend próprio (Cloud Functions)** — exige Blaze.
 
@@ -158,21 +161,24 @@ estruturado** (schema), e **nome do modelo vindo do Remote Config** (padrão atu
 - ✅ Trocar de modelo quando o Google desligar um sem publicar nova versão.
 - ⚠️ Free tier: limites de requisições e os dados podem ser usados pelo Google para melhorar
   produtos — não enviar nada sensível além dos prints.
-- ⚠️ **Risco a validar na Sprint 5:** App Check no iOS usa App Attest, que pode não estar
-  disponível para Personal Team. Em desenvolvimento usa-se o *debug provider*.
+- ✅ Na web (ADR-0011) o App Check usa **reCAPTCHA Enterprise** — sem conta Apple nem código
+  nativo. Em desenvolvimento, *debug token*.
 
 ---
 
-## ADR-0007 — Dinheiro em centavos (`Int`), nunca `Double`
+## ADR-0007 — Dinheiro em centavos inteiros, nunca ponto flutuante
 
 **Data:** 2026-09-15
 **Status:** Aceito
 
-**Contexto:** `Double` acumula erro de arredondamento (`0.1 + 0.2 != 0.3`). Somas de muitos
+**Contexto:** Ponto flutuante (`Double`, `number` do JavaScript) acumula erro de arredondamento (`0.1 + 0.2 != 0.3`). Somas de muitos
 lançamentos no mês dariam centavos errados.
 
-**Decisão:** Value object `Money` guardando **centavos em `Int`**, no `Domain` e no Firestore.
-Formatação para R$ só na apresentação. Litros e km/l usam `Decimal` quando necessário.
+**Decisão:** Dinheiro sempre como **centavos inteiros** (`number` inteiro no TypeScript, inteiro no
+Firestore), no `domain` e no banco. Formatação para R$ só na apresentação. Litros e km/l ficam como
+`number` decimal (não são dinheiro). **Taxas** (preço por litro, custo por km) ficam em centavos com
+fração (R$ 6,199/l = 619,9) e só são arredondadas quando viram dinheiro (ex.: custo do turno).
+*(Revisado para TypeScript — ADR-0011.)*
 
 **Consequências:**
 - ✅ Somas exatas; comparação e testes simples.
@@ -190,11 +196,11 @@ Pedir tudo digitado é atrito, e muitos entregadores não sabem esses números. 
 informa a moto, a IA pesquisa na internet e mostra o resultado; ele concorda ou muda; e pode trocar
 de moto e de consumo a qualquer momento.
 
-**Decisão:** Usar o Gemini com a ferramenta **Grounding with Google Search** (`Tool.googleSearch()`),
+**Decisão:** Usar o Gemini com a ferramenta **Grounding with Google Search** (`tools: [{ googleSearch: {} }]`),
 disponível no Firebase AI Logic para os modelos 3.x Flash/Flash-Lite. O resultado é **sempre uma
 sugestão**: a tela mostra os valores editáveis e as fontes; nada é salvo sem confirmação. Quando
 houver 2 abastecimentos com tanque cheio, o app sugere trocar para o **consumo medido**.
-Implementação atrás do protocolo `Domain.MotorcycleSpecsProvider`. Detalhes em [ia/](./ia/README.md).
+Implementação atrás da interface `MotorcycleSpecsProvider` (`src/domain/ports`). Detalhes em [ia/](./ia/README.md).
 
 **Alternativas consideradas:**
 - **Tabela própria de motos** — exige manutenção constante e fica desatualizada.
@@ -253,6 +259,91 @@ dono), mas **sem nada que exija pagamento agora** (conta Apple paga, plano Blaze
 **Consequências:**
 - ✅ Virar produto não exige migrar dados nem reescrever a base.
 - ✅ Custo zero enquanto é pessoal.
-- 🔜 Antes de vender: Apple Developer Program (US$ 99/ano), Sign in with Apple, App Store review,
-  termos de uso e privacidade (LGPD), plano pago do Gemini (no free tier o Google pode usar os
-  dados) e estimativa de custo de IA por usuário.
+- 🔜 Antes de vender: domínio próprio, cobrança por assinatura na web, termos de uso e privacidade
+  (LGPD), plano pago do Gemini (no free tier o Google pode usar os dados) e estimativa de custo de
+  IA por usuário. Apps nas lojas (Apple Developer US$ 99/ano, Sign in with Apple) na fase App, depois do PWA (ADR-0011).
+
+---
+
+## ADR-0011 — PWA com Vue 3 + TypeScript + Vuetify (substitui ADR-0001)
+
+**Data:** 2026-09-15
+**Status:** Aceito
+
+**Contexto:**
+- Ao preparar a Sprint 0 do SwiftUI: o Mac tem só Command Line Tools e ~27 GB livres; o Xcode
+  ocupa ~20 GB. Sem Xcode nem os testes do `Domain` rodavam (`no such module 'Testing'`, verificado).
+- A conta Apple gratuita faz o app expirar a cada 7 dias.
+- Há intenção de vender, e **Android é ~81% dos celulares no Brasil**.
+- O dev já domina Vue + Vuetify + Firebase + Vercel (projeto MegaMente).
+- React Native/Expo foi avaliado: adia o Xcode mas não elimina (`@react-native-firebase` não roda
+  no Expo Go, App Check é nativo, build para o aparelho exige Xcode ou conta paga).
+
+**Decisão:** **PWA** instalável na tela de início, com **Vue 3 + TypeScript + Vuetify 4 + Vite**,
+Firebase Web SDK, deploy na **Vercel**. Layout **mobile-first**. **Sem Tailwind**: o reset (preflight)
+e as classes utilitárias conflitam com o Vuetify; se um dia precisar, só com prefixo e sem preflight.
+
+**Alternativas consideradas:**
+- **SwiftUI** (ADR-0001) — melhor experiência nativa no iPhone, mas só iPhone, exige Xcode e expira em 7 dias.
+- **Expo / React Native** — iPhone + Android e efeito glass (`expo-glass-effect`), porém ainda depende de
+  Xcode/conta paga para o nosso uso de Firebase e é stack nova para o dev.
+- **Vue + Tailwind + componentes headless** — visual mais livre, mas mais componentes para construir do zero.
+
+**Consequências:**
+- ✅ iPhone, Android e computador com um único código.
+- ✅ Sem Xcode, sem conta Apple, sem expirar; dá para começar na hora.
+- ✅ Reaproveita padrões do MegaMente (pastas, wrappers, Firebase, Vercel).
+- ✅ App Check via reCAPTCHA Enterprise, sem código nativo.
+- ✅ Venda por assinatura web, sem comissão de loja.
+- ⚠️ Liquid Glass só imitado com CSS (`.mc-glass`).
+- ⚠️ Sensação menos nativa — mitigada com barra de navegação inferior, safe areas e telas pensadas para o celular.
+- ⚠️ No iPhone a instalação é manual (Safari → Compartilhar → Adicionar à Tela de Início) — o onboarding explica.
+- ⚠️ Sem notificações push por enquanto (ADR-0013).
+- 🔜 **Fase App planejada** (decisão do usuário, 2026-09-15): depois do PWA validado, app nas lojas
+  com Expo/React Native reaproveitando `src/domain`.
+
+---
+
+## ADR-0012 — Camadas em TypeScript com `domain` puro (substitui ADR-0002)
+
+**Data:** 2026-09-15
+**Status:** Aceito
+
+**Contexto:** Continua valendo o objetivo do ADR-0002 (regras de negócio isoladas, telas limpas,
+infraestrutura trocável). Na web não há pacotes separados pelo compilador, então a regra de
+dependência precisa de outra garantia.
+
+**Decisão:** Estrutura de pastas do MegaMente (`actions`, `services`, `stores`, `hooks`, `components`,
+`pages`, `templates`, `routes`, `lib`) **+ `src/domain`** (entidades, calculadoras e interfaces
+"ports", sem Vue/Firebase) **+ `src/data`** (implementações Firestore, memória e IA, escolhidas em
+`data/container.ts`). A regra de imports entre camadas é verificada pelo **ESLint**
+(`no-restricted-imports`). Testes com **Vitest**. Detalhes em [ARQUITETURA.md](./ARQUITETURA.md).
+
+**Alternativas consideradas:**
+- **Só a estrutura do MegaMente** (actions falando direto com o Firebase) — mais simples, mas as
+  fórmulas ficariam misturadas com acesso a dados e difíceis de testar.
+- **Monorepo com pacotes (`packages/domain`)** — isolamento mais forte, porém mais configuração para um app só.
+
+**Consequências:**
+- ✅ Regras de negócio testadas no Node em milissegundos.
+- ✅ Telas desenvolvidas com dados em memória, sem Firebase.
+- ✅ `src/domain` reaproveitável num app Expo futuro.
+- ⚠️ A regra de camadas depende do lint estar rodando (`npm run lint` no fluxo de trabalho).
+
+---
+
+## ADR-0013 — Sem notificações push; avisos dentro do app
+
+**Data:** 2026-09-15
+**Status:** Aceito
+
+**Contexto:** Push em PWA no iPhone exige o app instalado e um servidor para enviar (FCM + Cloud
+Functions → plano **Blaze**). O usuário confirmou que não precisa de notificação agora.
+
+**Decisão:** Avisos (manutenção perto de vencer, turno em aberto) aparecem **dentro do app**:
+banner (`McAlertBanner`) na tela Hoje e badge na aba Manutenção.
+
+**Consequências:**
+- ✅ Custo zero, sem servidor.
+- ⚠️ O usuário só vê o aviso ao abrir o app — aceitável, pois o uso é diário.
+- 🔜 Push via FCM + Cloud Functions (Blaze) se virar produto.

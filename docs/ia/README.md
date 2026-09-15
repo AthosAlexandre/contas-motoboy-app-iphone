@@ -1,13 +1,13 @@
 # 🤖 IA — Leitura de prints/fotos e ficha da moto
 
-Como o app transforma imagem em dados. Implementação no pacote `Data/AI`, atrás do protocolo
-`Domain.ReceiptExtractor` — as telas não sabem qual IA está por trás. Decisão em ADR-0006.
+Como o app transforma imagem em dados. Implementação em `src/data/ai`, atrás da interface
+`ReceiptExtractor` (`src/domain/ports`) — as telas não sabem qual IA está por trás. Decisão em ADR-0006.
 
 > Planejado para a **Sprint 5**. Situação verificada em 2026-09-15 — **reconferir modelos e
 > limites antes de implementar**, porque mudam rápido.
 
 ## Stack
-- **Firebase AI Logic** (`firebase-ios-sdk`) com provedor **Gemini Developer API** (free tier, plano Spark).
+- **Firebase AI Logic** (`firebase/ai`, SDK Web) com provedor **Gemini Developer API** (free tier, plano Spark).
 - Modelo lido do **Remote Config** (`ai_model`).
   - Padrão: `gemini-3.5-flash-lite` (barato/rápido, aceita imagem, free tier).
   - Alternativa: `gemini-3.8-flash` (mais preciso, free tier).
@@ -66,16 +66,18 @@ Rascunho para `fuelReceipt`:
 - A IA **nunca salva direto**: sempre passa pela tela **Confirmar leitura**, com campos editáveis.
 - Falhou (erro, sem internet, cota, `ai_enabled=false`) → abre o formulário manual vazio com aviso.
 - Salvamos a leitura em `aiExtractions` (JSON + modelo + status) — ver [firebase/](../firebase/README.md).
-- A imagem **não é guardada** (ADR-0005). Redimensionar antes de enviar (lado maior ~1600 px, JPEG)
+- A imagem **não é guardada** (ADR-0005). Redimensionar no `canvas` antes de enviar (lado maior ~1600 px, JPEG)
   para economizar tokens e dados móveis.
 
 ## Ficha da moto (pesquisa na internet — ADR-0008)
-Usada quando o usuário cadastra ou troca de moto. Implementa `Domain.MotorcycleSpecsProvider`.
+Usada quando o usuário cadastra ou troca de moto. Implementa `MotorcycleSpecsProvider` (`src/domain/ports`).
 
 - Ferramenta **Grounding with Google Search**, suportada no AI Logic pelos modelos 3.x Flash e Flash-Lite:
-  ```swift
-  let ai = FirebaseAI.firebaseAI(backend: .googleAI())
-  let model = ai.generativeModel(modelName: modelName, tools: [Tool.googleSearch()])
+  ```ts
+  import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai'
+
+  const ai = getAI(app, { backend: new GoogleAIBackend() })
+  const model = getGenerativeModel(ai, { model: modelName, tools: [{ googleSearch: {} }] })
   ```
 - Fluxo:
   1. Prompt com marca/modelo/ano pedindo: se é flex, consumo médio **em uso urbano com gasolina e com etanol**, tanque e
@@ -102,26 +104,26 @@ Usada quando o usuário cadastra ou troca de moto. Implementa `Domain.Motorcycle
   }
   ```
 - **Obrigações dos termos do Google** ao usar Grounding:
-  - Exibir as **sugestões de busca** (`searchEntryPoint.renderedContent`, HTML/CSS → `WKWebView` pequeno).
+  - Exibir as **sugestões de busca** (`searchEntryPoint.renderedContent`, HTML/CSS → `iframe` `srcdoc` isolado, `McSearchSuggestions`).
   - Exibir as **fontes** (`groundingChunks`) com link.
 - **Cota:** Grounding nos modelos 3.x tem cota gratuita mensal (≈ 5.000 prompts/mês segundo fontes
   de terceiros — **conferir na página oficial**). Uso esperado: poucas chamadas por mês.
 - Salvar em `motorcycles` com `specsSource = ai` e as fontes; registro em `aiExtractions`
   (kind `motorcycleSpecs`).
 
-## Plano B: Apple Vision (OCR no aparelho)
-Grátis e offline, mas devolve só texto solto. Candidato para o **odômetro** (um número grande)
-se a IA estiver indisponível.
+## Plano B: OCR no navegador (Tesseract.js)
+Grátis e sem internet depois de carregado, mas devolve só texto solto e é pesado (~MBs de modelo).
+Candidato apenas para o **odômetro** (um número grande) se a IA estiver indisponível.
 
 ## Limites e privacidade (free tier)
 - Limites de requisições por minuto/dia por modelo — conferir na página de preços do Gemini API.
 - No free tier o Google pode usar os dados para melhorar produtos. Prints de ganhos não têm dado
   sensível crítico, mas avisar o usuário se virar produto.
 
-## App Check (risco a validar)
-- Em desenvolvimento: **debug provider** (token cadastrado no Console).
-- No aparelho real: **App Attest**. **Verificar se funciona com Personal Team** (conta gratuita);
-  se não funcionar, manter debug provider enquanto o app for de uso pessoal.
+## App Check
+- Produção: **reCAPTCHA Enterprise** (`ReCaptchaEnterpriseProvider`), com o domínio da Vercel cadastrado.
+- Desenvolvimento (localhost ou IP da rede): **debug token** — `self.FIREBASE_APPCHECK_DEBUG_TOKEN`
+  com o valor de `VITE_APPCHECK_DEBUG_TOKEN`, token cadastrado no Console.
 
 ## Prompts
 > Versionar cada prompt aqui quando for criado (texto + versão + data), para saber qual prompt
