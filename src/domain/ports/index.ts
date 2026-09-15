@@ -1,7 +1,8 @@
 /**
  * Ports: o que o domínio precisa da infraestrutura. Implementações em src/data (memória, Firestore).
  */
-import type { Earning, Expense, Fueling, Motorcycle, New, Platform, Settings, Shift } from '@/domain/entities'
+import type { AuthUser, Earning, Expense, Fueling, Motorcycle, New, Platform, Settings, Shift } from '@/domain/entities'
+import type { DomainError } from '@/domain/errors'
 import type { DayRange } from '@/domain/period'
 
 export interface ShiftRepository {
@@ -32,16 +33,24 @@ export interface FuelingRepository {
 }
 
 export interface PlatformRepository {
+  /** Todas, ativas e inativas, na ordem. */
   list(): Promise<Platform[]>
+  add(platform: New<Platform>): Promise<Platform>
+  update(platform: Platform): Promise<void>
 }
 
 export interface MotorcycleRepository {
   getActive(): Promise<Motorcycle | null>
   get(id: string): Promise<Motorcycle | null>
+  list(): Promise<Motorcycle[]>
+  add(motorcycle: New<Motorcycle>): Promise<Motorcycle>
+  update(motorcycle: Motorcycle): Promise<void>
+  setActive(id: string): Promise<void>
 }
 
 export interface SettingsRepository {
   get(): Promise<Settings>
+  save(settings: Settings): Promise<void>
 }
 
 export interface Repositories {
@@ -52,4 +61,17 @@ export interface Repositories {
   platforms: PlatformRepository
   motorcycles: MotorcycleRepository
   settings: SettingsRepository
+}
+
+export interface AuthService {
+  /** Chama o listener com o estado atual assim que souber e a cada mudança. Retorna o "desinscrever". */
+  onChange(listener: (user: AuthUser | null) => void): () => void
+  signIn(email: string, password: string): Promise<void>
+  signUp(name: string, email: string, password: string): Promise<void>
+  /** Login com Google. Em produção a página sai para o Google e volta logada (redirecionamento). */
+  signInWithGoogle(): Promise<void>
+  /** Erro do retorno do login com Google, se houve (a página foi recarregada no meio). */
+  redirectError(): Promise<DomainError | null>
+  sendPasswordReset(email: string): Promise<void>
+  signOut(): Promise<void>
 }

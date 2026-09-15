@@ -4,7 +4,7 @@
  */
 import { reactive, ref } from 'vue'
 
-import { DomainError } from '@/domain/errors'
+import { errorMessage } from '@/hooks/errorMessage'
 
 export function useAsyncAction() {
   const saving = ref(false)
@@ -23,7 +23,7 @@ export function useAsyncAction() {
       return true
     } catch (error) {
       console.error(error)
-      notify(error instanceof DomainError ? error.message : 'Não foi possível salvar. Tente de novo.', 'error')
+      notify(errorMessage(error), 'error')
       return false
     } finally {
       saving.value = false

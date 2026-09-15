@@ -35,6 +35,9 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
+        // /__/auth e /__/firebase são do Firebase (login com Google): o service worker não pode
+        // responder com o app nesses caminhos (ADR-0016).
+        navigateFallbackDenylist: [/^\/__\//],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
       },
     }),

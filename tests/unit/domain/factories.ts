@@ -32,6 +32,8 @@ export function motorcycle(overrides: Partial<Motorcycle> = {}): Motorcycle {
     tankLiters: 14,
     useMeasuredConsumption: true,
     specsSource: 'manual',
+    activeFrom: '2026-01-01T00:00:00.000Z',
+    activeUntil: null,
     ...overrides,
   }
 }

@@ -68,7 +68,8 @@ contas-motoboy-app-iphone/
 │   │   ├── ports/              # interfaces: ShiftRepository, FuelingRepository, ReceiptExtractor, MotorcycleSpecsProvider…
 │   │   └── errors.ts           # DomainError
 │   ├── data/                   # 🔌 implementações das ports
-│   │   ├── firestore/          # repositórios + mappers (documento ↔ entidade)
+│   │   ├── firestore/          # repositórios + mappers (documento ↔ entidade) + bootstrap do 1º acesso
+│   │   ├── auth/               # login: Firebase Auth e o login fake do modo local
 │   │   ├── memory/             # repositórios em memória (dev sem Firebase, testes)
 │   │   ├── ai/                 # extractors Gemini, ficha da moto (Grounding), prompts, schemas
 │   │   └── container.ts        # escolhe firestore ou memory (VITE_DATA_SOURCE) e exporta os repositórios
@@ -108,6 +109,10 @@ contas-motoboy-app-iphone/
 - **Modo local (até a Sprint 2):** `data/memory` salva os dados no próprio aparelho (localStorage), com
   iFood/99Food, uma moto de exemplo e preços padrão (`memory/seed.ts`). Nos testes, os mesmos
   repositórios rodam só em memória (`setRepos(createMemoryRepos())`).
+- **Modo Firebase (`VITE_DATA_SOURCE=firestore`):** `initData()` (chamado no `main.ts` antes de montar)
+  baixa o SDK por import dinâmico, cria o `AuthService` e, **a cada mudança de sessão**, roda o bootstrap
+  do usuário e troca `repos` para `users/{uid}`. Só depois avisa os ouvintes (`onSessionChange`), então
+  quem reage ao login já encontra os repositórios certos.
 
 ### actions (casos de uso)
 - Uma função por ação do usuário: valida com o `domain` e persiste pelos repositórios do container.
@@ -132,6 +137,9 @@ contas-motoboy-app-iphone/
 - **Hooks** (composables) para o estado de uma tela: `loading`, `error`, dados já formatados.
 - Hoje: `stores/today` (dia atual: turno, lançamentos, resumo) e `hooks/useAsyncAction` (salvar com
   carregando + aviso de sucesso/erro; `DomainError` mostra a própria mensagem).
+- `stores/session`: usuário logado e moto ativa. As **guardas de rota** (`routes/index.ts`) usam a sessão:
+  sem login → `/conta/entrar`; logado sem moto → `/moto`; logado em tela de conta → Hoje.
+- `hooks/useFormSubmit`: formulários de conta com erro exibido no próprio card.
 
 ### pages e components
 - Pages montam a tela com componentes `Mc*` e chamam hooks/actions. Sem regra de negócio.

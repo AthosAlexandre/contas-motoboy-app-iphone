@@ -93,6 +93,8 @@ plano **Spark** (gratuito).
 
 > **Revisado em 2026-09-15 (stack web, ADR-0011):** decisão mantida. Na web, "Entrar com Apple"
 > também exige o Apple Developer Program (Services ID).
+>
+> **Revisado em 2026-09-15 (ADR-0016):** entrou também o login com **Google**, a pedido do usuário.
 
 **Contexto:** A ideia inicial era login com Apple ID. Porém a **conta Apple gratuita (Personal
 Team) não suporta a capability "Sign in with Apple"** (nem Push, iCloud, App Groups).
@@ -348,3 +350,80 @@ banner (`McAlertBanner`) na tela Hoje e badge na aba Manutenção.
 - ✅ Custo zero, sem servidor.
 - ⚠️ O usuário só vê o aviso ao abrir o app — aceitável, pois o uso é diário.
 - 🔜 Push via FCM + Cloud Functions (Blaze) se virar produto.
+
+---
+
+## ADR-0014 — Escritas no Firestore sem esperar o servidor (offline primeiro)
+
+**Data:** 2026-09-15
+**Status:** Aceito
+
+**Contexto:** O entregador lança dados na rua, muitas vezes sem sinal. Com o cache offline do Firestore,
+o `await setDoc(...)` só termina quando o **servidor** confirma — sem internet, a tela ficaria travada
+no "salvando".
+
+**Decisão:** Os repositórios Firestore geram o id no aparelho (`doc(collection)`), disparam a escrita
+**sem `await`** e devolvem a entidade na hora. A escrita vale imediatamente no cache (as leituras seguintes
+já enxergam) e sincroniza quando a conexão voltar. Falha no servidor (ex.: regras) vai para o console.
+Leituras usam `getDocs`/`getDoc`, que caem no cache quando está offline.
+
+**Alternativas consideradas:**
+- **`await` em toda escrita** — simples, mas trava sem sinal.
+- **Fila própria de sincronização** — reinventar o que o SDK já faz.
+
+**Consequências:**
+- ✅ Lançar ganho/abastecimento sem internet funciona igual.
+- ⚠️ Se o servidor recusar uma escrita, o usuário não vê aviso (só o console) e o cache desfaz o dado.
+  Com regras corretas isso não deve acontecer; revisar se aparecer.
+
+---
+
+## ADR-0015 — Datas como texto (ISO e `yyyy-MM-dd`) no Firestore
+
+**Data:** 2026-09-15
+**Status:** Aceito
+
+**Contexto:** O rascunho do modelo previa `Timestamp` do Firestore. O domínio já trabalha com instantes
+em ISO 8601 (UTC) e com o dia `yyyy-MM-dd` no fuso de São Paulo.
+
+**Decisão:** Gravar `createdAt`, `startedAt`, `endedAt`, `activeFrom`… como **strings ISO** e `day` como
+`yyyy-MM-dd`. O documento fica igual à entidade, sem conversão.
+
+**Consequências:**
+- ✅ Mappers triviais; mesmo formato na memória, no Firestore e no app de loja futuro.
+- ✅ Strings ISO ordenam corretamente (`orderBy('endedAt')`), e os períodos consultam por `day`.
+- ⚠️ No Console as datas aparecem como texto, não como data.
+
+---
+
+## ADR-0016 — Login com Google por redirecionamento, com `/__/auth` repassado pela Vercel
+
+**Data:** 2026-09-15
+**Status:** Aceito (validar no iPhone depois do deploy)
+
+**Contexto:** O usuário quer entrar com a conta Google. O login do Firebase por **redirecionamento**
+depende de um iframe do domínio `motoboy-contas.firebaseapp.com`; Safari 16.1+, Firefox 109+ e Chrome 115+
+bloqueiam esse armazenamento de terceiros quando o site está em outro domínio (Vercel). O **popup** não
+volta de forma confiável no app instalado na tela de início do iPhone.
+
+**Decisão:** Seguir a opção recomendada pelo Firebase para apps fora do Firebase Hosting
+(docs "redirect-best-practices", opção 3):
+- `vercel.json` repassa `/__/auth/:path*` para `https://motoboy-contas.firebaseapp.com/__/auth/:path*`.
+- Em produção `VITE_FIREBASE_AUTH_DOMAIN = contas-motoboy-app-iphone.vercel.app` (mesmo domínio do app).
+- O código usa **redirecionamento** quando o `authDomain` é o próprio site e **popup** nos outros casos
+  (localhost com `motoboy-contas.firebaseapp.com`).
+- O service worker não intercepta `/__/` (`navigateFallbackDenylist`), senão o retorno cairia no app.
+- Na OAuth do Google Cloud: `https://contas-motoboy-app-iphone.vercel.app/__/auth/handler` como URI de
+  redirecionamento autorizado.
+
+**Alternativas consideradas:**
+- **Só popup** — mais simples, mas falha no app instalado no iPhone.
+- **Hospedar os arquivos de `/__/auth` no próprio projeto** (opção 4) — precisa ressincronizar com o Firebase.
+- **SDK do Google Identity + `signInWithCredential`** (opção 5) — mais código e mais configuração.
+
+**Consequências:**
+- ✅ Mesmo fluxo no navegador e no app instalado.
+- ⚠️ Três configurações fora do código (Console, Google Cloud, variável na Vercel) — ver SETUP.
+- ⚠️ Mesmo e-mail com senha e com Google: o Firebase mantém uma conta por e-mail e o Google pode assumir
+  a conta (removendo a senha se o e-mail não foi verificado). Orientar a usar sempre o mesmo jeito.
+- 🔜 Domínio próprio no futuro: trocar o `authDomain`, o repasse e a URI de redirecionamento.

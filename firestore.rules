@@ -1,0 +1,42 @@
+rules_version = '2';
+
+// MotoboyContas — regras do Firestore.
+// Cada usuário só lê e escreve a própria árvore users/{uid}/... (ver docs/firebase/README.md).
+//
+// ⚠️ Publicar no Console sempre que este arquivo mudar:
+//    Firestore Database → Regras → colar o conteúdo → Publicar.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    match /users/{uid} {
+      // Perfil + Ajustes (preços padrão, reserva, moto ativa).
+      allow read, create, update: if isOwner(uid);
+      allow delete: if false;
+
+      match /{collectionName}/{docId} {
+        allow read, write: if isOwner(uid)
+          && collectionName in [
+            'platforms',
+            'motorcycles',
+            'shifts',
+            'earnings',
+            'expenses',
+            'fuelings',
+            'maintenanceItems',
+            'maintenanceRecords',
+            'aiExtractions'
+          ];
+      }
+    }
+
+    // Qualquer outro caminho: bloqueado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

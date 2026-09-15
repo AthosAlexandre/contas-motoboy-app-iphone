@@ -4,6 +4,66 @@ Registro do que foi feito, quando e por quê. Ordem cronológica (mais recente n
 
 ---
 
+## 2026-09-15 — Login com Google
+
+**Contexto:** O usuário ativou o e-mail/senha no Console e pediu também login com a conta Google.
+
+**Verificado:** documentação do Firebase ("redirect-best-practices"): Safari/Firefox/Chrome bloqueiam o
+redirecionamento entre domínios; para app fora do Firebase Hosting a recomendação é repassar `/__/auth`.
+`https://motoboy-contas.firebaseapp.com/__/auth/handler`, `handler.js` e `iframe` respondem 200;
+`/__/firebase/init.json` responde 404 (projeto sem Hosting) e não é necessário — repasse não criado.
+
+**Feito:**
+- `AuthService.signInWithGoogle` + `redirectError`; Firebase: redirecionamento quando `authDomain` = site,
+  popup no localhost; erros novos em português (cancelado, popup bloqueado, conta existente, domínio não
+  autorizado, provedor desligado). Login local também tem "Google" fake.
+- Botões **Continuar com Google** (Entrar) e **Criar conta com Google** (Criar conta).
+- `vercel.json`: repasse `/__/auth/*` e SPA sem capturar `/__/`; `vite.config.ts`: service worker com
+  `navigateFallbackDenylist: [/^\/__\//]` (conferido no `dist/sw.js`).
+- Docs: ADR-0016 (e revisão do ADR-0004), SETUP (Console, Google Cloud, Vercel + problemas comuns),
+  firebase/, fluxos/conta, SPRINTS, `.env.example`.
+
+**Verificação:** 117 testes, type-check, lint e build sem erros. **O login com Google de verdade ainda não
+foi testado** — depende das configurações do Console/Google Cloud/Vercel e de um deploy.
+
+---
+
+## 2026-09-15 — Sprint 2: login, Firestore, Minha moto e Ajustes
+
+**Feito:**
+- **domain:** `AuthUser`, vigência da moto (`activeFrom`/`activeUntil`), `defaults.ts` (plataformas e
+  Ajustes iniciais), `validation.ts` (moto, Ajustes, plataforma, e-mail/senha), novos `DomainError`
+  (inclusive os de login), ports `AuthService` e repositórios de moto/Ajustes/plataformas completos.
+- **data:** Firebase Auth (erros → mensagens em português) e login fake do modo local; repositórios
+  **Firestore** em `users/{uid}` (escritas sem esperar o servidor — ADR-0014; datas como texto — ADR-0015);
+  bootstrap do primeiro acesso; `container.ts` com `initData()`, sessão e troca de repositórios por usuário.
+- **services:** `firebase.ts` (Auth pt-BR, cache offline multi-aba), carregado só no modo Firestore.
+- **actions:** `auth` (entrar, criar conta, recuperar senha, sair), `motorcycle` (cadastrar/trocar,
+  editar, consumo medido), `settings` (Ajustes e plataformas).
+- **UI:** `stores/session`, guardas de rota (sem login → Entrar; sem moto → Minha moto), `AuthLayout`,
+  telas Entrar / Criar conta / Esqueci a senha, **Minha moto**, **Ajustes**; `McPasswordField`;
+  `useFormSubmit` e `errorMessage`.
+- `firestore.rules` (dono lê/escreve só a própria árvore e só nas coleções conhecidas).
+- Docs: ADR-0014 e 0015, firebase/, ARQUITETURA, SETUP (passo a passo do Console), componentes, fluxos.
+
+**Verificação:** 116 testes (validações; cadastrar/trocar/editar moto sem mexer em turno encerrado;
+Ajustes; plataformas; login local), type-check, lint e build sem erros. O SDK do Firebase fica num
+pedaço separado (~150 kB gzip) baixado só no modo Firestore.
+
+**Não verificado:** os repositórios Firestore e as regras **contra o Firebase de verdade** — sem Java
+na máquina não deu para rodar o emulador, e o Console ainda não tem Auth/Firestore ativados. As telas
+também não foram abertas num navegador nesta sessão.
+
+**Decisões pequenas:**
+- Cilindrada fica para a ficha pela IA (Sprint 5); intervalos de manutenção para a Sprint 4.
+- Plataformas não são apagadas, só desativadas (preserva o histórico).
+- Modo local continua como padrão (`VITE_DATA_SOURCE=memory`) até o Console estar pronto.
+
+**Pendente (usuário):** ativar Auth e Firestore, publicar as regras, autorizar o domínio, trocar para
+`firestore` no `.env`/Vercel e testar.
+
+---
+
 ## 2026-09-15 — Sprint 1: turno, lançamentos e cálculos (entrada manual)
 
 **Feito:**

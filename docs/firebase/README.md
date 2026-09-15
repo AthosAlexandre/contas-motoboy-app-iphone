@@ -2,7 +2,8 @@
 
 Auth, modelagem do Firestore, regras de segurança, App Check e Remote Config.
 
-> Ainda **não configurado** — este é o rascunho. Preencher conforme implementarmos (Sprint 2).
+> **Código pronto (Sprint 2).** Falta ligar no Console: Authentication, Firestore e regras — passo a
+> passo em [SETUP.md](../SETUP.md#trocar-do-modo-local-para-o-firebase).
 
 ## Projeto
 - **ID:** `motoboy-contas` (criado em 2026-09-15, conta do dev) · app Web `motoboycontas-web`.
@@ -21,7 +22,7 @@ Auth, modelagem do Firestore, regras de segurança, App Check e Remote Config.
 |----------|--------|------------|
 | **E-mail/senha** | ✅ usar | Inclui reset de senha. `auth.languageCode = "pt-BR"`. |
 | Sign in with Apple | 🔜 depois | Exige conta Apple paga (ADR-0004). |
-| Google | 🤔 talvez | Possível na conta gratuita. |
+| **Google** | ✅ usar | Redirecionamento em produção (proxy `/__/auth` na Vercel) e popup no localhost — ADR-0016. |
 
 ## Modelagem do Firestore (rascunho)
 
@@ -43,8 +44,8 @@ users/{uid}/aiExtractions/{id}           leituras da IA (auditoria)
 | Coleção | Campos principais (rascunho) |
 |---------|------------------------------|
 | `users` | name, email, activeMotorcycleId, defaultGasolinePriceCents, defaultEthanolPriceCents, maintenanceReservePer100KmCents (fallback), createdAt |
-| `motorcycles` | brand, model, year, engineCc?, fuelSupport (`flex`/`gasoline`), kmPerLiterGasoline, kmPerLiterEthanol?, tankLiters?, specsSource (`ai`/`manual`), specsSources [{title, url}], useMeasuredConsumption, activeFrom, activeUntil? |
-| `platforms` | name, colorHex, isActive, order |
+| `motorcycles` | brand, model, year?, fuelSupport (`flex`/`gasoline`), kmPerLiterGasoline?, kmPerLiterEthanol?, tankLiters?, specsSource (`ai`/`manual`), useMeasuredConsumption, activeFrom, activeUntil? — _Sprint 5: engineCc, specsSources [{title, url}]_ |
+| `platforms` | name, isActive, order (as iniciais têm ids fixos `ifood` e `99food`) |
 | `shifts` | motorcycleId, startedAt, endedAt?, kmStart, kmEnd?, fuelLevelStart?, fuelLevelEnd?, day (`yyyy-MM-dd`); **snapshot ao encerrar:** fuelTypeUsed, kmPerLiterUsed, fuelPriceCentsUsed, fuelCostCents, maintenanceReserveCents |
 | `earnings` | platformId, amountCents, tipCents?, date, day, shiftId?, source (`manual`/`ai`), aiExtractionId? |
 | `expenses` | category, amountCents, description?, date, day, source, aiExtractionId? |
@@ -57,20 +58,19 @@ users/{uid}/aiExtractions/{id}           leituras da IA (auditoria)
 - Dinheiro em **centavos** (`...Cents`, `Int`) — ADR-0007.
 - Campo `day` (`yyyy-MM-dd` no fuso de São Paulo) para consultar dia/semana/mês por intervalo de
   string, sem depender de fuso na query.
-- Datas como `Timestamp`. IDs gerados pelo Firestore.
+- Datas como **strings ISO** (`createdAt`, `startedAt`, `activeFrom`…) — ADR-0015. IDs gerados pelo Firestore.
+- Consultas sem índice composto: período por `day` (intervalo), `endedAt == null` (turno aberto),
+  `endedAt != null` + `orderBy('endedAt')` (último turno), `motorcycleId ==` (abastecimentos). A ordenação
+  por `createdAt` é feita no app.
 
-## Regras de segurança (rascunho)
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{uid}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-  }
-}
-```
-- Arquivo versionado: `firestore.rules` na raiz (a criar na Sprint 2).
+## Regras de segurança
+- Arquivo versionado: [`firestore.rules`](../../firestore.rules) na raiz.
+- Estado atual:
+  - `users/{uid}`: só o dono lê, cria e atualiza; ninguém apaga.
+  - `users/{uid}/{coleção}/{doc}`: só o dono lê e escreve, e só nas coleções conhecidas
+    (`platforms`, `motorcycles`, `shifts`, `earnings`, `expenses`, `fuelings`, `maintenanceItems`,
+    `maintenanceRecords`, `aiExtractions`).
+  - Qualquer outro caminho: bloqueado.
 - ⚠️ **Publicar no Console** sempre que o arquivo mudar (senão `permission-denied`).
 - 🔜 Validar tipos/valores nas regras (ex.: `amountCents is int && amountCents >= 0`).
 
@@ -78,6 +78,19 @@ service cloud.firestore {
 - Cache persistente do Firestore no navegador (IndexedDB):
   `initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })`.
   Lançamentos feitos sem sinal ficam pendentes e sobem quando a conexão volta.
+- As escritas **não esperam o servidor** (ADR-0014): o id é gerado no aparelho e a tela segue na hora.
+  Recusa do servidor aparece só no console (`[firestore] escrita recusada pelo servidor`).
+
+## Primeiro acesso (bootstrap)
+- A cada login, `data/firestore/bootstrap.ts` confere se `users/{uid}` existe. Se não existe, cria em lote:
+  o documento do usuário (nome, e-mail, `activeMotorcycleId: null` e os Ajustes padrão) e as plataformas
+  `ifood` e `99food`.
+- Sem moto cadastrada, a guarda de rota leva para **Minha moto** antes de liberar o app.
+- Se as regras não estiverem publicadas, o bootstrap falha com `permission-denied` (aparece no console).
+
+## Modo local × Firebase
+- `VITE_DATA_SOURCE=memory`: sem Firebase, dados só no aparelho (o SDK nem é baixado).
+- `VITE_DATA_SOURCE=firestore`: login + Firestore. **Os dados do modo local não são migrados.**
 
 ## App Check
 - Obrigatório para o AI Logic a partir de **02/11/2026**. Detalhes em [ia/](../ia/README.md).

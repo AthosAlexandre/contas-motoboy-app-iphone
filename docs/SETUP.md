@@ -69,6 +69,39 @@ Abre em tela cheia, com ícone, sem a barra do navegador. Versões novas chegam 
 > As chaves `VITE_FIREBASE_*` **não são segredo** (vão no bundle do site). A segurança vem das
 > regras do Firestore e do App Check.
 
+### Trocar do modo local para o Firebase
+
+⚠️ Os dados lançados no modo local **não vão para o Firebase** — a conta começa vazia.
+
+1. **Authentication** → *Começar* → aba *Método de login* → **E-mail/senha** → ativar só a primeira opção
+   (não o "link por e-mail") → Salvar.
+2. **Authentication** → *Configurações* → *Domínios autorizados* → **Adicionar domínio** →
+   `contas-motoboy-app-iphone.vercel.app` (o `localhost` já vem na lista).
+3. **Firestore Database** → *Criar banco de dados* → local **`southamerica-east1` (São Paulo)** →
+   **modo de produção** → Criar.
+4. **Firestore Database** → aba **Regras** → apagar o conteúdo → colar o arquivo
+   [`firestore.rules`](../firestore.rules) → **Publicar**.
+5. **Local:** no `.env`, `VITE_DATA_SOURCE=firestore` → `npm run dev` → criar conta → cadastrar a moto.
+6. **Vercel:** *Settings → Environment Variables* → `VITE_DATA_SOURCE` = `firestore` → *Deployments* →
+   **Redeploy** do último.
+
+Conferir no Console → Firestore → *Dados*: deve aparecer `users/{seu uid}` com as plataformas.
+
+### Login com Google (ADR-0016)
+
+1. **Firebase → Authentication → Método de login → Adicionar provedor → Google** → ativar →
+   *Nome público do projeto*: `MotoboyContas` → *E-mail de suporte*: seu e-mail → **Salvar**.
+2. **Google Cloud Console** ([console.cloud.google.com](https://console.cloud.google.com), projeto
+   `motoboy-contas`) → *APIs e serviços → Credenciais* → **Web client (auto created by Google Service)** →
+   *URIs de redirecionamento autorizados* → **Adicionar URI** →
+   `https://contas-motoboy-app-iphone.vercel.app/__/auth/handler` → **Salvar** (pode levar alguns minutos).
+3. **Vercel → Environment Variables** → `VITE_FIREBASE_AUTH_DOMAIN` = `contas-motoboy-app-iphone.vercel.app`
+   → **Redeploy**. O `vercel.json` já repassa `/__/auth/*` para o Firebase.
+4. **Local:** deixar `VITE_FIREBASE_AUTH_DOMAIN=motoboy-contas.firebaseapp.com` no `.env` — no localhost o
+   Google abre num popup.
+
+> No iPhone, teste pelo endereço de produção: o botão leva para a tela do Google e volta já logado.
+
 ## Deploy (Vercel)
 
 - Importar o repositório → framework **Vite** → build `npm run build`, saída `dist`.
@@ -86,6 +119,12 @@ Abre em tela cheia, com ícone, sem a barra do navegador. Versões novas chegam 
 | Sintoma | Causa provável | Solução |
 |---|---|---|
 | `permission-denied` no Firestore | Regras não publicadas | Publicar `firestore.rules` no Console |
+| "E-mail ou senha incorretos" logo no cadastro / erro `auth/operation-not-allowed` | Provedor E-mail/senha desligado | Authentication → Método de login → E-mail/senha → ativar |
+| Login funciona no localhost mas não na Vercel | Domínio não autorizado | Authentication → Configurações → Domínios autorizados |
+| Google mostra `redirect_uri_mismatch` | URI de redirecionamento não cadastrada | Google Cloud → Credenciais → Web client → adicionar `https://contas-motoboy-app-iphone.vercel.app/__/auth/handler` |
+| Google volta para o app mas não loga (Vercel) | `VITE_FIREBASE_AUTH_DOMAIN` ainda é o `firebaseapp.com` | Trocar para `contas-motoboy-app-iphone.vercel.app` na Vercel e fazer Redeploy |
+| Popup do Google não abre (localhost) | Pop-up bloqueado pelo navegador | Permitir pop-ups para `localhost` |
+| App volta sempre para "Minha moto" | Bootstrap falhou (regras) ou a moto não salvou | Ver o console do navegador; publicar as regras |
 | IA retorna erro de App Check (401/403) | Debug token não cadastrado ou domínio fora do reCAPTCHA | Cadastrar o token em *App Check → Manage debug tokens* / adicionar o domínio |
 | "Adicionar à Tela de Início" abre como site comum | Acessado por `http` ou manifest inválido | Usar a URL HTTPS da Vercel; conferir o manifest no build |
 | Celular não abre `http://IP:5173` | Redes diferentes ou firewall do macOS | Mesma rede Wi-Fi; permitir conexões de entrada para o Node |

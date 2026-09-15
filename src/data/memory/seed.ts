@@ -1,14 +1,9 @@
 /**
- * Dados iniciais do modo local (até a Sprint 2, quando moto, plataformas e Ajustes vêm do Firestore).
+ * Dados iniciais do modo local (sem Firebase). Plataformas e Ajustes vêm de domain/defaults.
  */
-import type { Motorcycle, Platform, Settings } from '@/domain/entities'
+import type { Motorcycle } from '@/domain/entities'
 
-export const SEED_PLATFORMS: Platform[] = [
-  { id: 'ifood', name: 'iFood', isActive: true, order: 1 },
-  { id: '99food', name: '99Food', isActive: true, order: 2 },
-]
-
-/** Moto de exemplo (flex) — substituída pelo cadastro "Minha moto" na Sprint 2. */
+/** Moto de exemplo (flex) — o usuário pode editar ou trocar em "Minha moto". */
 export const SEED_MOTORCYCLE: Motorcycle = {
   id: 'example-motorcycle',
   brand: 'Moto',
@@ -20,11 +15,6 @@ export const SEED_MOTORCYCLE: Motorcycle = {
   tankLiters: null,
   useMeasuredConsumption: true,
   specsSource: 'manual',
-}
-
-/** Exemplos da REGRAS-DE-NEGOCIO: gasolina R$ 6,20/l, etanol R$ 4,15/l, reserva R$ 8,42 a cada 100 km. */
-export const DEFAULT_SETTINGS: Settings = {
-  defaultGasolinePriceCents: 620,
-  defaultEthanolPriceCents: 415,
-  maintenanceReservePer100KmCents: 842,
+  activeFrom: '2026-01-01T00:00:00.000Z',
+  activeUntil: null,
 }

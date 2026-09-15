@@ -49,6 +49,16 @@ export interface Motorcycle {
   /** Usar o consumo medido (tanque cheio) quando houver. */
   useMeasuredConsumption: boolean
   specsSource: EntrySource
+  /** Vigência: trocar de moto encerra a anterior (`activeUntil`) e começa a nova (ADR-0009). */
+  activeFrom: string
+  activeUntil: string | null
+}
+
+/** Usuário logado. */
+export interface AuthUser {
+  uid: string
+  name: string
+  email: string
 }
 
 export interface Settings {

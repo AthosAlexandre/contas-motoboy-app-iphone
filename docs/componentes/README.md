@@ -71,6 +71,7 @@ Breve descrição / quando usar.
 | `McNumberField` | `v-text-field` numérico (km, litros) com sufixo | 1 ✅ | [mc-number-field.md](./mc-number-field.md) |
 | `McFuelTypeToggle` | `v-btn-toggle` gasolina/etanol (prop `allowEthanol` para moto não flex) | 1 ✅ | [mc-fuel-type-toggle.md](./mc-fuel-type-toggle.md) |
 | `McStatCard` | `v-card` com título, valor e legenda; `highlight` tonal | 1 ✅ | [mc-stat-card.md](./mc-stat-card.md) |
+| `McPasswordField` | `v-text-field` de senha com mostrar/ocultar | 2 ✅ | [mc-password-field.md](./mc-password-field.md) |
 | `McPeriodPicker` | `v-btn-toggle` dia/semana/mês + navegação ‹ › | 3 | — |
 | `McPieChart` | biblioteca de gráficos (escolhida na Sprint 3) | 3 | — |
 | `McLineChart` | biblioteca de gráficos (escolhida na Sprint 3) | 3 | — |

@@ -1,26 +1,46 @@
 /**
  * Repositórios locais (memória + storage opcional) — implementam as ports do domain.
  */
+import { DEFAULT_PLATFORMS, DEFAULT_SETTINGS } from '@/domain/defaults'
 import type { Earning, Expense, Fueling, Motorcycle, Platform, Settings, Shift } from '@/domain/entities'
 import { isDayInRange } from '@/domain/period'
 import type { Repositories } from '@/domain/ports'
 
 import { MemoryCollection, type KeyValueStorage } from './collection'
-import { DEFAULT_SETTINGS, SEED_MOTORCYCLE, SEED_PLATFORMS } from './seed'
+import { SEED_MOTORCYCLE } from './seed'
 
 const KEY_PREFIX = 'mc:v1:'
+
+interface Profile {
+  id: string
+  activeMotorcycleId: string | null
+}
+
+export interface MemoryReposOptions {
+  /** Começa com a moto de exemplo ativa (padrão). `false` = conta sem moto, como um usuário novo. */
+  exampleMotorcycle?: boolean
+}
 
 function byCreatedAt(a: { createdAt: string }, b: { createdAt: string }): number {
   return a.createdAt.localeCompare(b.createdAt)
 }
 
-export function createMemoryRepos(storage?: KeyValueStorage): Repositories {
+export function createMemoryRepos(storage?: KeyValueStorage, options: MemoryReposOptions = {}): Repositories {
+  const withExample = options.exampleMotorcycle ?? true
+
   const shifts = new MemoryCollection<Shift>(`${KEY_PREFIX}shifts`, storage)
   const earnings = new MemoryCollection<Earning>(`${KEY_PREFIX}earnings`, storage)
   const expenses = new MemoryCollection<Expense>(`${KEY_PREFIX}expenses`, storage)
   const fuelings = new MemoryCollection<Fueling>(`${KEY_PREFIX}fuelings`, storage)
-  const platforms = new MemoryCollection<Platform>(`${KEY_PREFIX}platforms`, storage, SEED_PLATFORMS)
-  const motorcycles = new MemoryCollection<Motorcycle>(`${KEY_PREFIX}motorcycles`, storage, [SEED_MOTORCYCLE])
+  const platforms = new MemoryCollection<Platform>(`${KEY_PREFIX}platforms`, storage, DEFAULT_PLATFORMS)
+  const motorcycles = new MemoryCollection<Motorcycle>(
+    `${KEY_PREFIX}motorcycles`,
+    storage,
+    withExample ? [SEED_MOTORCYCLE] : [],
+  )
+  const profile = new MemoryCollection<Profile>(`${KEY_PREFIX}profile`, storage, [
+    { id: 'profile', activeMotorcycleId: withExample ? SEED_MOTORCYCLE.id : null },
+  ])
   const settings = new MemoryCollection<Settings & { id: string }>(`${KEY_PREFIX}settings`, storage, [
     { id: 'settings', ...DEFAULT_SETTINGS },
   ])
@@ -91,14 +111,33 @@ export function createMemoryRepos(storage?: KeyValueStorage): Repositories {
       async list() {
         return platforms.all().sort((a, b) => a.order - b.order)
       },
+      async add(input) {
+        return platforms.add(input)
+      },
+      async update(platform) {
+        platforms.update(platform)
+      },
     },
 
     motorcycles: {
       async getActive() {
-        return motorcycles.all()[0] ?? null
+        const activeId = profile.all()[0]?.activeMotorcycleId
+        return activeId ? motorcycles.find(activeId) : null
       },
       async get(id) {
         return motorcycles.find(id)
+      },
+      async list() {
+        return motorcycles.all().sort((a, b) => a.activeFrom.localeCompare(b.activeFrom))
+      },
+      async add(input) {
+        return motorcycles.add(input)
+      },
+      async update(motorcycle) {
+        motorcycles.update(motorcycle)
+      },
+      async setActive(id) {
+        profile.update({ id: 'profile', activeMotorcycleId: id })
       },
     },
 
@@ -111,6 +150,9 @@ export function createMemoryRepos(storage?: KeyValueStorage): Repositories {
           defaultEthanolPriceCents: stored.defaultEthanolPriceCents,
           maintenanceReservePer100KmCents: stored.maintenanceReservePer100KmCents,
         }
+      },
+      async save(values) {
+        settings.update({ id: 'settings', ...values })
       },
     },
   }

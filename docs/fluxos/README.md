@@ -24,14 +24,14 @@ Abrir app
 
 | Tela | Feature | Sprint | Use cases principais | Doc |
 |------|---------|--------|----------------------|-----|
-| Login / Cadastro / Reset | `Auth` | 2 | SignIn, SignUp, ResetPassword | — |
+| Entrar / Criar conta / Esqueci a senha | `auth` | 2 ✅ | signIn, signUp, sendPasswordReset | [conta.md](./conta.md) |
 | Hoje | `today` | 1 ✅ | startShift, endShift, getPeriodSummary(dia), listEntries, removeEntry | [hoje.md](./hoje.md) |
 | Novo registro (manual) | `entry` | 1 ✅ | addEarning, addExpense, addFueling | [novo-registro.md](./novo-registro.md) |
 | Novo registro (foto) → Confirmar leitura | `Entry` | 5 | ExtractFromImage + Add* | — |
 | Resumo | `Reports` | 3 | GetPeriodSummary(dia/semana/mês), ListEntries | — |
 | Manutenção | `Maintenance` | 4 | ListMaintenanceItems, RegisterMaintenance | — |
-| Ajustes | `Settings` | 2 | UpdateSettings, ManagePlatforms | — |
-| Minha moto → Ficha sugerida | `Motorcycle` | 2 (manual) / 5 (IA) | SaveMotorcycle, SwitchMotorcycle, SuggestMotorcycleSpecs | — |
+| Ajustes | `settings` | 2 ✅ | getSettings, saveSettings, addPlatform, setPlatformActive, signOut | [ajustes.md](./ajustes.md) |
+| Minha moto → Ficha sugerida | `motorcycle` | 2 ✅ (manual) / 5 (IA) | registerMotorcycle, updateMotorcycle, getMeasuredConsumption | [minha-moto.md](./minha-moto.md) |
 
 ## Princípio de UX
 O entregador usa o app **cansado, no fim do dia, às vezes de luva**. Por isso:

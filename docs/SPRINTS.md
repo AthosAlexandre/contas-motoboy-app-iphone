@@ -50,7 +50,7 @@ nada quebra.
 
 **Firebase e deploy**
 - [x] **(você)** Criar o projeto Firebase (Spark) + app Web → preencher o `.env` — projeto `motoboy-contas`
-- [ ] `services/firebase.ts` — feito na Sprint 2, quando o projeto existir
+- [x] `services/firebase.ts` — feito na Sprint 2
 - [x] **(você)** Deploy na Vercel — produção em https://contas-motoboy-app-iphone.vercel.app
 - [ ] **(você)** Instalar na tela de início do iPhone pelo domínio de produção (validar o PWA)
 
@@ -83,15 +83,25 @@ nada quebra.
       km, tanque cheio?)
 - [ ] **(você)** Testar o fluxo no iPhone/navegador (os dados ficam só no aparelho até a Sprint 2)
 
-## 🗓️ Sprint 2 — Firebase: login e persistência
-- [ ] Auth e-mail/senha: cadastro, login, reset de senha, sair (ADR-0004) + guardas de rota
-- [ ] Modelagem Firestore `users/{uid}/...` — ver [firebase/](./firebase/README.md)
-- [ ] Repositórios `data/firestore/` com mappers; trocar no `container.ts` (sem mexer nas telas)
-- [ ] Cache offline do Firestore (lançar sem sinal, sincroniza depois)
-- [ ] `firestore.rules`: cada usuário só lê/escreve os próprios dados + publicar
-- [ ] Tela **Ajustes**: plataformas, preço padrão de gasolina e etanol
-- [ ] **Minha moto** (manual): marca, modelo, ano, cilindrada, flex?, consumo por combustível, tanque,
-      intervalos de manutenção; editar e **trocar de moto** a qualquer momento (ADR-0009)
+## 🗓️ Sprint 2 — Firebase: login e persistência — código pronto, falta ligar no Console e testar
+- [x] Auth e-mail/senha: cadastro, login, reset de senha, sair (ADR-0004) + guardas de rota
+      (sem login → Entrar; sem moto → Minha moto)
+- [x] Login com **Google** (redirecionamento + proxy `/__/auth` na Vercel; popup no localhost — ADR-0016)
+- [x] Modelagem Firestore `users/{uid}/...` + primeiro acesso cria Ajustes e plataformas — ver [firebase/](./firebase/README.md)
+- [x] Repositórios `data/firestore/` com mappers; `container.ts` troca os repositórios a cada sessão (telas intactas)
+- [x] Cache offline do Firestore; escritas não esperam o servidor (ADR-0014)
+- [x] `firestore.rules`: cada usuário só lê/escreve os próprios dados
+- [x] Tela **Ajustes**: conta, preço padrão de gasolina e etanol, reserva por 100 km, plataformas (adicionar/desativar), sair
+- [x] **Minha moto** (manual): marca, modelo, ano, tanque, flex?, consumo por combustível, usar consumo medido;
+      editar a ficha e **trocar de moto** (ADR-0009). Cilindrada fica para a Sprint 5 (ficha pela IA) e
+      intervalos de manutenção para a Sprint 4
+- [x] Testes: validações, moto/ajustes/plataformas e login local (116 testes no total)
+- [ ] **(você)** Console: ativar Authentication (e-mail/senha), criar o Firestore (São Paulo), publicar as
+      regras e autorizar o domínio da Vercel — ver [SETUP.md](./SETUP.md#trocar-do-modo-local-para-o-firebase)
+- [ ] **(você)** `VITE_DATA_SOURCE=firestore` no `.env` e na Vercel → criar conta e testar no iPhone
+- [ ] **(você)** Google: nome público + e-mail de suporte no provedor, URI de redirecionamento no Google Cloud e
+      `VITE_FIREBASE_AUTH_DOMAIN` na Vercel — ver [SETUP.md](./SETUP.md#login-com-google-adr-0016)
+- [ ] Validar o Firestore de verdade (sem Java na máquina não deu para usar o emulador)
 
 ## 🗓️ Sprint 3 — Relatórios e gráficos
 - [ ] Escolher a biblioteca de gráficos (ADR): leve e boa no celular
