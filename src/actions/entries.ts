@@ -85,6 +85,35 @@ export async function addFueling(input: FuelingInput, now = new Date()): Promise
   })
 }
 
+/** Corrige um ganho já lançado (valor, gorjeta ou plataforma). */
+export async function updateEarning(earning: Earning): Promise<Earning> {
+  assertAmount(earning.amountCents)
+  if (!Number.isInteger(earning.tipCents) || earning.tipCents < 0) throw new DomainError('invalid-tip')
+  await repos.earnings.update(earning)
+  return earning
+}
+
+export async function updateExpense(expense: Expense): Promise<Expense> {
+  assertAmount(expense.amountCents)
+  const clean = { ...expense, description: expense.description.trim() }
+  await repos.expenses.update(clean)
+  return clean
+}
+
+/** Corrige um abastecimento; o preço por litro é recalculado. */
+export async function updateFueling(fueling: Fueling): Promise<Fueling> {
+  assertAmount(fueling.totalCents)
+  if (!(fueling.liters > 0)) throw new DomainError('invalid-liters')
+  if (fueling.odometerKm !== null && !(fueling.odometerKm >= 0)) throw new DomainError('invalid-km')
+
+  const updated = {
+    ...fueling,
+    pricePerLiterCents: pricePerLiterCents(fueling.totalCents, fueling.liters) ?? 0,
+  }
+  await repos.fuelings.update(updated)
+  return updated
+}
+
 export async function listEntries(range: DayRange): Promise<DayEntries> {
   const [earnings, expenses, fuelings] = await Promise.all([
     repos.earnings.listByDayRange(range),

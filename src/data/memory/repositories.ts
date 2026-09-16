@@ -75,6 +75,9 @@ export function createMemoryRepos(storage?: KeyValueStorage, options: MemoryRepo
       async add(input) {
         return earnings.add(input)
       },
+      async update(earning) {
+        earnings.update(earning)
+      },
       async remove(id) {
         earnings.remove(id)
       },
@@ -86,6 +89,9 @@ export function createMemoryRepos(storage?: KeyValueStorage, options: MemoryRepo
       },
       async add(input) {
         return expenses.add(input)
+      },
+      async update(expense) {
+        expenses.update(expense)
       },
       async remove(id) {
         expenses.remove(id)
@@ -101,6 +107,9 @@ export function createMemoryRepos(storage?: KeyValueStorage, options: MemoryRepo
       },
       async add(input) {
         return fuelings.add(input)
+      },
+      async update(fueling) {
+        fuelings.update(fueling)
       },
       async remove(id) {
         fuelings.remove(id)

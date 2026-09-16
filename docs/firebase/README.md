@@ -85,6 +85,8 @@ users/{uid}/aiExtractions/{id}           leituras da IA (auditoria)
 - A cada login, `data/firestore/bootstrap.ts` confere se `users/{uid}` existe. Se não existe, cria em lote:
   o documento do usuário (nome, e-mail, `activeMotorcycleId: null` e os Ajustes padrão) e as plataformas
   `ifood` e `99food`.
+- **Nada disso espera o servidor** (ADR-0014): a leitura tem prazo de 8 s e a gravação é disparada sem
+  `await`. Com sinal ruim o app abre do mesmo jeito e o próximo login tenta de novo.
 - Sem moto cadastrada, a guarda de rota leva para **Minha moto** antes de liberar o app.
 - Se as regras não estiverem publicadas, o bootstrap falha com `permission-denied` (aparece no console).
 

@@ -103,15 +103,18 @@ nada quebra.
       `VITE_FIREBASE_AUTH_DOMAIN` na Vercel — ver [SETUP.md](./SETUP.md#login-com-google-adr-0016)
 - [ ] Validar o Firestore de verdade (sem Java na máquina não deu para usar o emulador)
 
-## 🗓️ Sprint 3 — Relatórios e gráficos
-- [ ] Escolher a biblioteca de gráficos (ADR): leve e boa no celular
-- [ ] `getPeriodSummary` ligado ao Firestore (dia / semana / mês)
-- [ ] Tela **Resumo**: `McPeriodPicker` + cards (ganho, gasto, lucro, km, R$/km)
-- [ ] `McPieChart` — ganhos por plataforma e gastos por categoria
-- [ ] `McLineChart` — evolução do lucro diário no mês
-- [ ] Lista/tabela de lançamentos do período (editar/excluir)
-- [ ] Comparativo mês a mês (lucro de cada mês)
-- [ ] Etanol × gasolina: R$/km de cada um com o consumo medido ("qual compensa hoje")
+## 🗓️ Sprint 3 — Relatórios e gráficos — código pronto, falta testar no uso real
+- [x] Gráficos **sem biblioteca**: SVG próprio (ADR-0017)
+- [x] Relatório do período ligado aos repositórios (dia / semana / mês), com navegação ‹ ›
+- [x] Tela **Resumo**: `McPeriodPicker` + cards (lucro, ganho, gasto, combustível, reserva, km, R$/km)
+- [x] `McPieChart` — de onde veio o dinheiro (plataformas) e para onde foi (combustível, reserva, gastos)
+- [x] `McLineChart` — lucro por dia (semana/mês) e lucro de cada mês
+- [x] Lista de lançamentos do período com **editar** (diálogo) e **excluir**
+- [x] Comparativo mês a mês (últimos 6 meses, só no modo Mês)
+- [x] Etanol × gasolina: R$/km de cada um com o consumo medido ("qual compensa hoje")
+- [x] No mês, o combustível usa o **valor real** dos abastecimentos (dia/semana usam o estimado)
+- [x] Testes: divisões, série diária, períodos, mês real × estimado e edição de lançamentos (133 no total)
+- [ ] **(você)** Usar num dia real e conferir se os números e as telas fazem sentido
 
 ## 🗓️ Sprint 4 — Manutenção e reservas
 - [ ] Itens de manutenção (óleo, relação, pneus, freios, revisão…) com intervalo em km e/ou dias

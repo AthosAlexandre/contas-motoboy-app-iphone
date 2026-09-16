@@ -98,6 +98,9 @@ export function createFirestoreRepos(db: Firestore, uid: string): Repositories {
       async add(input) {
         return add<Earning>('earnings', input)
       },
+      async update(earning) {
+        put('earnings', earning)
+      },
       async remove(id) {
         remove('earnings', id)
       },
@@ -109,6 +112,9 @@ export function createFirestoreRepos(db: Firestore, uid: string): Repositories {
       },
       async add(input) {
         return add<Expense>('expenses', input)
+      },
+      async update(expense) {
+        put('expenses', expense)
       },
       async remove(id) {
         remove('expenses', id)
@@ -125,6 +131,9 @@ export function createFirestoreRepos(db: Firestore, uid: string): Repositories {
       },
       async add(input) {
         return add<Fueling>('fuelings', input)
+      },
+      async update(fueling) {
+        put('fuelings', fueling)
       },
       async remove(id) {
         remove('fuelings', id)

@@ -376,6 +376,10 @@ Leituras usam `getDocs`/`getDoc`, que caem no cache quando está offline.
 - ⚠️ Se o servidor recusar uma escrita, o usuário não vê aviso (só o console) e o cache desfaz o dado.
   Com regras corretas isso não deve acontecer; revisar se aparecer.
 
+> **Revisado em 2026-09-16:** o bootstrap do primeiro acesso ainda esperava o servidor
+> (`await batch.commit()`) e travou a tela "Cadastrar moto" no primeiro login real. Agora a leitura tem
+> prazo de 8 s e a gravação também é disparada sem `await`.
+
 ---
 
 ## ADR-0015 — Datas como texto (ISO e `yyyy-MM-dd`) no Firestore
@@ -427,3 +431,32 @@ volta de forma confiável no app instalado na tela de início do iPhone.
 - ⚠️ Mesmo e-mail com senha e com Google: o Firebase mantém uma conta por e-mail e o Google pode assumir
   a conta (removendo a senha se o e-mail não foi verificado). Orientar a usar sempre o mesmo jeito.
 - 🔜 Domínio próprio no futuro: trocar o `authDomain`, o repasse e a URI de redirecionamento.
+
+---
+
+## ADR-0017 — Gráficos em SVG próprio, sem biblioteca
+
+**Data:** 2026-09-16
+**Status:** Aceito
+
+**Contexto:** A Sprint 3 precisa de **dois** gráficos: rosca (de onde veio / para onde foi) e linha
+(lucro por dia e por mês). O app hoje tem ~28 kB gzip de código próprio; uma biblioteca de gráficos
+custaria bem mais que isso.
+
+**Decisão:** Desenhar os dois em **SVG**, em `McPieChart` e `McLineChart`. A rosca usa o truque do raio
+15,915 (circunferência = 100), então cada fatia usa a própria porcentagem em `stroke-dasharray`. A linha
+usa `polyline` + área, com `vector-effect="non-scaling-stroke"` para a espessura não distorcer. Cores
+vêm dos tokens do tema (`rgb(var(--v-theme-…))`), e cada gráfico tem `role="img"` + `aria-label` com os
+valores.
+
+**Alternativas consideradas:**
+- **Chart.js + vue-chartjs** (~60–70 kB gzip) — tooltips e escalas prontos, mas em canvas: precisa
+  redesenhar ao trocar o tema e não herda as cores do Vuetify.
+- **ApexCharts** (~150 kB gzip) — completo demais para dois gráficos simples.
+- **`v-sparkline` do Vuetify** — serve para a linha, mas não resolve a rosca.
+
+**Consequências:**
+- ✅ Nada a mais no bundle; combina com o tema claro/escuro automaticamente.
+- ✅ Leitor de tela lê os valores (o `aria-label` lista fatias e pontos).
+- ⚠️ Sem tooltip ao tocar num ponto: mostramos os números na legenda e nos cards.
+- ⚠️ Gráfico novo (barras, por exemplo) exigirá escrever outro componente; se virarem muitos, reavaliar.

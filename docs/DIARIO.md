@@ -4,6 +4,47 @@ Registro do que foi feito, quando e por quê. Ordem cronológica (mais recente n
 
 ---
 
+## 2026-09-16 — Sprint 3: Resumo, gráficos e comparativos
+
+**Feito:**
+- **domain:** `calculators/breakdown.ts` (ganhos por plataforma, custos por tipo, série diária) e
+  `period.ts` com `addMonths` e `eachDay`.
+- **actions/reports.ts:** `getReport` (dia/semana/mês, com o mês usando o **custo real** do combustível),
+  `getMonthlyProfits` (últimos 6 meses), `getFuelComparison` (etanol × gasolina por R$/km),
+  `rangeOf`/`shiftDay` para a navegação.
+- **Editar lançamento:** `update` nos repositórios (memória e Firestore) e nas actions de ganho, gasto e
+  abastecimento (com recálculo do preço por litro).
+- **UI:** `McPeriodPicker`, `McPieChart` e `McLineChart` (SVG próprio — ADR-0017) e a tela **Resumo**
+  completa, com diálogo de edição e exclusão com confirmação.
+- Docs: ADR-0017, SPRINTS, 3 docs de componente, `fluxos/resumo.md`.
+
+**Verificação:** 133 testes (divisões, série diária, períodos, mês real × estimado, comparativo de
+combustível e edição de lançamentos), type-check, lint e build sem erros. A tela do Resumo **não foi
+aberta num navegador** nesta sessão.
+
+**Decisões pequenas:**
+- Sem biblioteca de gráficos (ADR-0017): eram só dois gráficos e a economia de bundle compensa.
+- O comparativo mês a mês só carrega no modo Mês (são 6 períodos lidos de uma vez).
+- Edição fica no Resumo; a tela Hoje continua só com excluir.
+
+---
+
+## 2026-09-16 — Primeiro login travando em "Cadastrar moto"
+
+**Sintoma (usuário):** no primeiro acesso com a conta nova, o botão "Cadastrar moto" ficou girando sem
+terminar. Na segunda tentativa funcionou.
+
+**Causa provável:** o bootstrap do primeiro acesso (`data/firestore/bootstrap.ts`) fazia
+`await batch.commit()`, que só termina quando o **servidor** confirma. Enquanto isso não acontecia, a
+troca de repositórios da sessão ficava pendurada e a tela seguinte não concluía.
+
+**Feito:** bootstrap alinhado ao ADR-0014 — leitura com prazo de 8 s (se estourar, segue sem bootstrap e
+o próximo login tenta de novo) e gravações disparadas sem `await`, com erro no console.
+
+**Pendente:** confirmar num login novo (outra conta) que não trava mais.
+
+---
+
 ## 2026-09-15 — Login com Google
 
 **Contexto:** O usuário ativou o e-mail/senha no Console e pediu também login com a conta Google.

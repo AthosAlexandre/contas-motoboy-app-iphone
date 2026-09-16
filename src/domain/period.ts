@@ -43,6 +43,20 @@ export function dayRange(day: string): DayRange {
   return { from: day, to: day }
 }
 
+/** Soma meses mantendo o dia 1 (usado na navegação entre meses). */
+export function addMonths(day: string, amount: number): string {
+  const year = Number(day.slice(0, 4))
+  const month = Number(day.slice(5, 7))
+  return fromUtcDate(new Date(Date.UTC(year, month - 1 + amount, 1)))
+}
+
+/** Todos os dias do período, em ordem. */
+export function eachDay(range: DayRange): string[] {
+  const days: string[] = []
+  for (let day = range.from; day <= range.to; day = addDays(day, 1)) days.push(day)
+  return days
+}
+
 /** Semana de segunda a domingo que contém o dia. */
 export function weekRange(day: string): DayRange {
   const daysSinceMonday = (toUtcDate(day).getUTCDay() + 6) % 7

@@ -16,12 +16,14 @@ export interface ShiftRepository {
 export interface EarningRepository {
   listByDayRange(range: DayRange): Promise<Earning[]>
   add(earning: New<Earning>): Promise<Earning>
+  update(earning: Earning): Promise<void>
   remove(id: string): Promise<void>
 }
 
 export interface ExpenseRepository {
   listByDayRange(range: DayRange): Promise<Expense[]>
   add(expense: New<Expense>): Promise<Expense>
+  update(expense: Expense): Promise<void>
   remove(id: string): Promise<void>
 }
 
@@ -29,6 +31,7 @@ export interface FuelingRepository {
   listByDayRange(range: DayRange): Promise<Fueling[]>
   listByMotorcycle(motorcycleId: string): Promise<Fueling[]>
   add(fueling: New<Fueling>): Promise<Fueling>
+  update(fueling: Fueling): Promise<void>
   remove(id: string): Promise<void>
 }
 

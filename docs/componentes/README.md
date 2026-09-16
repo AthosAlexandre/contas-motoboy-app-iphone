@@ -72,9 +72,9 @@ Breve descrição / quando usar.
 | `McFuelTypeToggle` | `v-btn-toggle` gasolina/etanol (prop `allowEthanol` para moto não flex) | 1 ✅ | [mc-fuel-type-toggle.md](./mc-fuel-type-toggle.md) |
 | `McStatCard` | `v-card` com título, valor e legenda; `highlight` tonal | 1 ✅ | [mc-stat-card.md](./mc-stat-card.md) |
 | `McPasswordField` | `v-text-field` de senha com mostrar/ocultar | 2 ✅ | [mc-password-field.md](./mc-password-field.md) |
-| `McPeriodPicker` | `v-btn-toggle` dia/semana/mês + navegação ‹ › | 3 | — |
-| `McPieChart` | biblioteca de gráficos (escolhida na Sprint 3) | 3 | — |
-| `McLineChart` | biblioteca de gráficos (escolhida na Sprint 3) | 3 | — |
+| `McPeriodPicker` | `v-btn-toggle` dia/semana/mês + navegação ‹ › | 3 ✅ | [mc-period-picker.md](./mc-period-picker.md) |
+| `McPieChart` | SVG próprio (rosca), sem biblioteca — ADR-0017 | 3 ✅ | [mc-pie-chart.md](./mc-pie-chart.md) |
+| `McLineChart` | SVG próprio (linha + área), sem biblioteca — ADR-0017 | 3 ✅ | [mc-line-chart.md](./mc-line-chart.md) |
 | `McProgressBar` | `v-progress-linear` com faixas ok/atenção/vencido | 4 | — |
 | `McAlertBanner` | `v-alert` para avisos dentro do app (ADR-0013) | 4 | — |
 | `McImagePicker` | `v-btn` + `<input type="file" accept="image/*">` + redimensionamento | 5 | — |
