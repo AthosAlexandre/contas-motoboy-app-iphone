@@ -1,5 +1,15 @@
 <template>
   <div class="d-flex flex-column ga-4">
+    <!-- Manutenção vencendo (ADR-0013: aviso dentro do app, sem push) -->
+    <McAlertBanner
+      v-if="maintenanceAlert"
+      :type="maintenanceAlert.type"
+      :title="maintenanceAlert.title"
+      :text="maintenanceAlert.text"
+      action-label="Ver"
+      :to="{ name: 'maintenance' }"
+    />
+
     <!-- Turno -->
     <v-card flat class="border pa-4">
       <template v-if="store.openShift">
@@ -65,7 +75,7 @@
         title="Quanto guardar hoje"
         icon="mdi-piggy-bank-outline"
         :value="formatMoney(summary.toSaveCents)"
-        :caption="`Combustível ${formatMoney(summary.fuelCostCents)} + manutenção ${formatMoney(summary.maintenanceReserveCents)}`"
+        caption="Reserva de manutenção pelos km rodados (o combustível você paga no posto)"
       />
 
       <v-row dense>
@@ -74,6 +84,15 @@
         </v-col>
         <v-col cols="6">
           <McStatCard title="Lucro líquido" icon="mdi-wallet-outline" :value="formatMoney(summary.netProfitCents)" />
+        </v-col>
+        <v-col cols="6">
+          <McStatCard
+            title="Combustível"
+            icon="mdi-gas-station"
+            color="fuel"
+            :value="formatMoney(summary.fuelCostCents)"
+            caption="abastecido hoje"
+          />
         </v-col>
         <v-col cols="6">
           <McStatCard title="Gastos" icon="mdi-cash-minus" color="error" :value="formatMoney(summary.expensesCents)" />
@@ -94,10 +113,10 @@
         type="warning"
         variant="tonal"
         density="compact"
-        text="Consumo da moto não informado para o combustível usado: o custo de combustível ficou de fora."
+        text="Consumo da moto não informado para o combustível usado: a estimativa por km ficou incompleta."
       />
       <p v-if="summary.openShifts > 0" class="text-caption text-medium-emphasis mb-0">
-        Combustível e manutenção do turno em andamento entram quando você encerrar.
+        A reserva de manutenção do turno em andamento entra quando você encerrar.
       </p>
       <p v-if="fuelContextText" class="text-caption text-medium-emphasis mb-0">{{ fuelContextText }}</p>
     </template>
@@ -132,7 +151,7 @@
       <v-card-text v-else class="text-medium-emphasis">Nada lançado hoje ainda.</v-card-text>
 
       <v-card-text v-if="store.fuelings.length" class="pt-0 text-caption text-medium-emphasis">
-        Abastecimentos entram no lucro do dia pelo custo estimado por km, não pelo valor pago.
+        O abastecimento entra no lucro pelo valor pago, no dia em que foi lançado.
       </v-card-text>
     </v-card>
 
@@ -143,6 +162,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 
+import McAlertBanner from '@/components/McAlertBanner.vue'
 import McNumberField from '@/components/McNumberField.vue'
 import McStatCard from '@/components/McStatCard.vue'
 import { LONG_SHIFT_KM } from '@/domain/calculators/shift'
@@ -150,6 +170,7 @@ import { EXPENSE_CATEGORY_LABELS, FUEL_TYPE_LABELS } from '@/domain/entities'
 import type { EntryKind } from '@/actions/entries'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
 import { formatKm, formatKmPerLiter, formatLiters, formatMoney, formatRate, formatTime } from '@/lib/format'
+import { useMaintenanceStore } from '@/stores/maintenance'
 import { useTodayStore } from '@/stores/today'
 
 interface EntryItem {
@@ -166,12 +187,34 @@ interface EntryItem {
 }
 
 const store = useTodayStore()
+const maintenance = useMaintenanceStore()
 const { saving, snackbar, run } = useAsyncAction()
 
 const kmStart = ref<number | null>(null)
 const kmEnd = ref<number | null>(null)
 
-onMounted(() => store.load())
+onMounted(async () => {
+  await store.load()
+  await maintenance.load()
+})
+
+/** Aviso de manutenção: vencido em vermelho, perto de vencer em amarelo. */
+const maintenanceAlert = computed(() => {
+  const urgent = maintenance.mostUrgent
+  if (!urgent || urgent.status.state === 'ok') return null
+
+  const overdue = urgent.status.state === 'overdue'
+  const others = maintenance.alerts - 1
+  const extra = others > 0 ? ` (e mais ${others})` : ''
+
+  return {
+    type: overdue ? ('error' as const) : ('warning' as const),
+    title: overdue ? `${urgent.item.name} vencido${extra}` : `${urgent.item.name} está perto${extra}`,
+    text: overdue
+      ? `Passou ${formatKm(Math.max(0, -urgent.status.kmLeft))} do intervalo.`
+      : `Faltam ${formatKm(Math.max(0, urgent.status.kmLeft))} para a troca.`,
+  }
+})
 
 // Sugere o km final do último turno como km inicial do próximo.
 watch(
@@ -205,7 +248,7 @@ const fuelContextText = computed(() => {
   const context = store.fuelContext
   if (!context) return null
   const consumption = context.kmPerLiter === null ? 'consumo não informado' : formatKmPerLiter(context.kmPerLiter)
-  return `Cálculo com ${FUEL_TYPE_LABELS[context.fuelType]} · ${consumption}${context.measured ? ' (medido)' : ''} · ${formatRate(context.pricePerLiterCents)}/l`
+  return `Estimativa por km: ${FUEL_TYPE_LABELS[context.fuelType]} · ${consumption}${context.measured ? ' (medido)' : ''} · ${formatRate(context.pricePerLiterCents)}/l`
 })
 
 const items = computed<EntryItem[]>(() => {

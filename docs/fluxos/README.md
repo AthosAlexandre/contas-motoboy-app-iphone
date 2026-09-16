@@ -29,7 +29,7 @@ Abrir app
 | Novo registro (manual) | `entry` | 1 ✅ | addEarning, addExpense, addFueling | [novo-registro.md](./novo-registro.md) |
 | Novo registro (foto) → Confirmar leitura | `Entry` | 5 | ExtractFromImage + Add* | — |
 | Resumo | `reports` | 3 ✅ | getReport(dia/semana/mês), getMonthlyProfits, getFuelComparison, update/removeEntry | [resumo.md](./resumo.md) |
-| Manutenção | `Maintenance` | 4 | ListMaintenanceItems, RegisterMaintenance | — |
+| Manutenção | `maintenance` | 4 ✅ | getMaintenanceOverview, addMaintenanceItem, registerMaintenance, addSuggestedItems | [manutencao.md](./manutencao.md) |
 | Ajustes | `settings` | 2 ✅ | getSettings, saveSettings, addPlatform, setPlatformActive, signOut | [ajustes.md](./ajustes.md) |
 | Minha moto → Ficha sugerida | `motorcycle` | 2 ✅ (manual) / 5 (IA) | registerMotorcycle, updateMotorcycle, getMeasuredConsumption | [minha-moto.md](./minha-moto.md) |
 

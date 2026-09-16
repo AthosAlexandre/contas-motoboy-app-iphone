@@ -1,6 +1,9 @@
 /**
  * Resumo de um período (dia, semana, mês) — ver docs/REGRAS-DE-NEGOCIO.md (Lucro, Métricas,
  * Quanto guardar).
+ *
+ * Combustível entra pelo **valor pago** no abastecimento, no dia do lançamento (ADR-0018). O custo
+ * estimado por km continua sendo calculado, mas só como indicador — não entra no lucro.
  */
 import type { Earning, Expense, Fueling, Shift } from '@/domain/entities'
 import { shiftKm } from '@/domain/calculators/shift'
@@ -13,16 +16,19 @@ export interface PeriodSummary {
   grossCents: number
   /** Gastos diretos (sem combustível e sem manutenção). */
   expensesCents: number
+  /** Abastecimentos pagos no período. */
   fuelCostCents: number
+  /** Indicador: quanto o combustível teria custado pelo consumo × km (snapshot dos turnos). */
+  estimatedFuelCostCents: number
   maintenanceReserveCents: number
   operatingProfitCents: number
   netProfitCents: number
-  /** Combustível + reserva de manutenção. */
+  /** Dinheiro a guardar: a reserva de manutenção (o combustível já foi pago). */
   toSaveCents: number
   /** R$/km e lucro/km em centavos com fração; `null` sem km rodado. */
   grossPerKmCents: number | null
   netPerKmCents: number | null
-  /** Algum turno encerrado sem consumo informado → combustível ficou de fora. */
+  /** Algum turno encerrado sem consumo informado → a estimativa por km ficou incompleta. */
   missingConsumption: boolean
 }
 
@@ -31,11 +37,6 @@ export interface SummaryInput {
   earnings: readonly Earning[]
   expenses: readonly Expense[]
   fuelings?: readonly Fueling[]
-  /**
-   * `estimated` (padrão): combustível pelo snapshot de cada turno (km ÷ consumo × preço).
-   * `real`: soma dos abastecimentos do período — usado nos resumos mensais.
-   */
-  fuelCostMode?: 'estimated' | 'real'
 }
 
 function sum<T>(items: readonly T[], pick: (item: T) => number): number {
@@ -43,16 +44,14 @@ function sum<T>(items: readonly T[], pick: (item: T) => number): number {
 }
 
 export function summarizePeriod(input: SummaryInput): PeriodSummary {
-  const { shifts, earnings, expenses, fuelings = [], fuelCostMode = 'estimated' } = input
+  const { shifts, earnings, expenses, fuelings = [] } = input
   const closed = shifts.filter((shift) => shift.snapshot !== null && shiftKm(shift) !== null)
 
   const km = sum(closed, (shift) => shiftKm(shift) ?? 0)
   const grossCents = sum(earnings, (earning) => earning.amountCents + earning.tipCents)
   const expensesCents = sum(expenses, (expense) => expense.amountCents)
-  const fuelCostCents =
-    fuelCostMode === 'real'
-      ? sum(fuelings, (fueling) => fueling.totalCents)
-      : sum(closed, (shift) => shift.snapshot?.fuelCostCents ?? 0)
+  const fuelCostCents = sum(fuelings, (fueling) => fueling.totalCents)
+  const estimatedFuelCostCents = sum(closed, (shift) => shift.snapshot?.fuelCostCents ?? 0)
   const maintenanceReserveCents = sum(closed, (shift) => shift.snapshot?.maintenanceReserveCents ?? 0)
 
   const operatingProfitCents = grossCents - fuelCostCents - expensesCents
@@ -65,12 +64,13 @@ export function summarizePeriod(input: SummaryInput): PeriodSummary {
     grossCents,
     expensesCents,
     fuelCostCents,
+    estimatedFuelCostCents,
     maintenanceReserveCents,
     operatingProfitCents,
     netProfitCents,
-    toSaveCents: fuelCostCents + maintenanceReserveCents,
+    toSaveCents: maintenanceReserveCents,
     grossPerKmCents: km > 0 ? grossCents / km : null,
     netPerKmCents: km > 0 ? netProfitCents / km : null,
-    missingConsumption: fuelCostMode === 'estimated' && closed.some((shift) => shift.snapshot?.fuelCostCents === null),
+    missingConsumption: closed.some((shift) => shift.snapshot?.fuelCostCents === null),
   }
 }

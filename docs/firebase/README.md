@@ -50,8 +50,8 @@ users/{uid}/aiExtractions/{id}           leituras da IA (auditoria)
 | `earnings` | platformId, amountCents, tipCents?, date, day, shiftId?, source (`manual`/`ai`), aiExtractionId? |
 | `expenses` | category, amountCents, description?, date, day, source, aiExtractionId? |
 | `fuelings` | motorcycleId, fuelType (`gasoline`/`ethanol`), totalCents, liters, pricePerLiterCents (calculado = total ÷ litros; decimal, ex.: 619.9), odometerKm, fullTank, date, day, source, aiExtractionId? |
-| `maintenanceItems` | motorcycleId, name, intervalKm, intervalDays?, estimatedCostCents, lastKm, lastDate |
-| `maintenanceRecords` | itemId, odometerKm, date, costCents |
+| `maintenanceItems` | motorcycleId, name, intervalKm, intervalDays (`null` = só por km), estimatedCostCents, lastKm, lastDate |
+| `maintenanceRecords` | motorcycleId, itemId, **itemName** (histórico sobrevive se o item for apagado), odometerKm, costCents, day, createdAt |
 | `aiExtractions` | kind (`earningsScreenshot`/`dashboard`/`fuelReceipt`/`motorcycleSpecs`), model, rawJson, status (`pending`/`confirmed`/`discarded`), createdAt |
 
 **Convenções:**

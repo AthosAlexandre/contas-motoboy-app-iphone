@@ -19,8 +19,8 @@
     <v-card flat class="border pa-4">
       <div class="text-overline">Combustível e manutenção</div>
       <p class="text-caption text-medium-emphasis mb-3">
-        Preços usados enquanto não há abastecimento daquele combustível. A reserva vale até os itens de manutenção
-        serem cadastrados.
+        Preços usados enquanto não há abastecimento daquele combustível. A reserva por 100 km só vale
+        <strong>enquanto não houver itens</strong> em Manutenção — com itens cadastrados, ela é calculada por eles.
       </p>
 
       <McNumberField v-model="gasolinePrice" label="Gasolina — preço padrão" prefix="R$" suffix="/l" :decimals="3" />

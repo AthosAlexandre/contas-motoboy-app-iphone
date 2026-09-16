@@ -43,26 +43,50 @@ describe('getReport', () => {
     const report = await getReport('week', '2026-09-16')
 
     expect(report.range).toEqual({ from: '2026-09-14', to: '2026-09-20' })
-    expect(report.summary).toMatchObject({ km: 240, grossCents: 20000, fuelCostCents: 3720, expensesCents: 4000 })
+    expect(report.summary).toMatchObject({
+      km: 240,
+      grossCents: 20000,
+      fuelCostCents: 0, // nada abastecido nesta semana
+      estimatedFuelCostCents: 3720,
+      expensesCents: 4000,
+      toSaveCents: 2020,
+    })
     expect(report.earnings).toEqual([{ key: 'ifood', cents: 20000 }])
-    expect(report.costs.map((slice) => slice.key)).toEqual(['food', 'fuel', 'maintenance'])
+    expect(report.costs.map((slice) => slice.key)).toEqual(['food', 'maintenance'])
     expect(report.daily).toHaveLength(7)
     expect(report.daily[1]).toMatchObject({ day: '2026-09-15', grossCents: 12000, km: 120 })
     expect(report.daily[3]).toMatchObject({ day: '2026-09-17', grossCents: 0, km: 0 })
   })
 
-  it('no mês o combustível é o valor real dos abastecimentos', async () => {
+  it('o valor pago no posto vale igual no dia, na semana e no mês (ADR-0018)', async () => {
     await workday('2026-09-15', 12000)
     await addFueling(
-      { fuelType: 'gasoline', totalCents: 5000, liters: 8, odometerKm: null, fullTank: false },
+      { fuelType: 'ethanol', totalCents: 5000, liters: 12, odometerKm: null, fullTank: true },
       at('2026-09-15T16:00:00Z'),
     )
 
+    const day = await getReport('day', '2026-09-15')
     const week = await getReport('week', '2026-09-15')
     const month = await getReport('month', '2026-09-15')
 
-    expect(week.summary.fuelCostCents).toBe(1860) // estimado pelo turno
-    expect(month.summary.fuelCostCents).toBe(5000) // pago no posto
+    for (const report of [day, week, month]) {
+      expect(report.summary.fuelCostCents).toBe(5000)
+      expect(report.summary.estimatedFuelCostCents).toBe(1860)
+      expect(report.summary.toSaveCents).toBe(1010)
+    }
+    expect(day.summary.netProfitCents).toBe(12000 - 5000 - 2000 - 1010)
+  })
+
+  it('abastecer depois de encerrar o turno conta no dia do lançamento', async () => {
+    await workday('2026-09-15', 12000)
+    await addFueling(
+      { fuelType: 'ethanol', totalCents: 5000, liters: 12, odometerKm: null, fullTank: true },
+      at('2026-09-16T10:00:00Z'),
+    )
+
+    expect((await getReport('day', '2026-09-15')).summary.fuelCostCents).toBe(0)
+    expect((await getReport('day', '2026-09-16')).summary.fuelCostCents).toBe(5000)
+    expect((await getReport('week', '2026-09-15')).summary.fuelCostCents).toBe(5000)
   })
 
   it('dia sem movimento vem zerado', async () => {

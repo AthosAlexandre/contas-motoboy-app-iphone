@@ -76,3 +76,9 @@ export function monthRange(day: string): DayRange {
 export function isDayInRange(day: string, range: DayRange): boolean {
   return day >= range.from && day <= range.to
 }
+
+/** Dias entre dois dias (negativo se `to` for anterior a `from`). */
+export function daysBetween(from: string, to: string): number {
+  const millis = toUtcDate(to).getTime() - toUtcDate(from).getTime()
+  return Math.round(millis / 86_400_000)
+}

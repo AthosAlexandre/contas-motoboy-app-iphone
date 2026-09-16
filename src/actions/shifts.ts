@@ -2,6 +2,7 @@
  * Casos de uso do turno.
  */
 import { repos } from '@/data/container'
+import { reservePerKmCents } from '@/domain/calculators/maintenance'
 import { buildShiftSnapshot, shiftKm } from '@/domain/calculators/shift'
 import type { Shift } from '@/domain/entities'
 import { DomainError } from '@/domain/errors'
@@ -45,12 +46,16 @@ export async function endShift(kmEnd: number, now = new Date()): Promise<Shift> 
   const km = shiftKm({ kmStart: shift.kmStart, kmEnd })
   if (km === null) throw new DomainError('km-end-before-start')
 
-  const [motorcycle, settings, fuelings] = await Promise.all([
+  const [motorcycle, settings, fuelings, maintenanceItems] = await Promise.all([
     repos.motorcycles.get(shift.motorcycleId),
     repos.settings.get(),
     repos.fuelings.listByMotorcycle(shift.motorcycleId),
+    repos.maintenanceItems.listByMotorcycle(shift.motorcycleId),
   ])
   if (!motorcycle) throw new DomainError('no-motorcycle')
+
+  // Com itens de manutenção cadastrados, a reserva sai deles; senão, do valor por 100 km dos Ajustes.
+  const perKmCents = maintenanceItems.length > 0 ? reservePerKmCents(maintenanceItems) : undefined
 
   const endedAt = now.toISOString()
   const closed: Shift = {
@@ -62,6 +67,7 @@ export async function endShift(kmEnd: number, now = new Date()): Promise<Shift> 
       motorcycle,
       settings,
       fuelings: fuelings.filter((fueling) => fueling.createdAt <= endedAt),
+      maintenanceReservePerKmCents: perKmCents,
     }),
   }
 

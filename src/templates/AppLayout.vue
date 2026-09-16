@@ -14,7 +14,10 @@
 
     <v-bottom-navigation grow color="primary" :height="64" class="mc-glass mc-bottom-nav border-t">
       <v-btn v-for="item in NAV_ITEMS" :key="item.to" :to="item.to" :exact="item.exact">
-        <v-icon :icon="item.icon" />
+        <v-badge v-if="item.to === '/manutencao' && maintenance.alerts > 0" :content="maintenance.alerts" color="error">
+          <v-icon :icon="item.icon" />
+        </v-badge>
+        <v-icon v-else :icon="item.icon" />
         <span>{{ item.label }}</span>
       </v-btn>
     </v-bottom-navigation>
@@ -25,9 +28,12 @@
 /**
  * Layout principal (mobile-first): cabeçalho com o título da tela, conteúdo e barra de navegação
  * inferior. As safe areas do iPhone (barra de gestos) são tratadas em assets/styles/main.css.
+ * A aba Manutenção mostra um badge com quantos itens estão vencidos ou perto de vencer (ADR-0013).
  */
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+
+import { useMaintenanceStore } from '@/stores/maintenance'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Hoje', icon: 'mdi-home-variant-outline', exact: true },
@@ -38,5 +44,11 @@ const NAV_ITEMS = [
 ] as const
 
 const route = useRoute()
+const maintenance = useMaintenanceStore()
+
 const title = computed(() => route.meta.title ?? 'MotoboyContas')
+
+onMounted(() => {
+  if (!maintenance.loaded) void maintenance.load()
+})
 </script>

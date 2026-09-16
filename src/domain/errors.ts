@@ -21,6 +21,8 @@ export type DomainErrorCode =
   | 'invalid-reserve'
   | 'invalid-platform-name'
   | 'duplicate-platform'
+  | 'invalid-maintenance-name'
+  | 'invalid-interval'
   | 'invalid-name'
   | 'invalid-email'
   | 'invalid-password'
@@ -54,6 +56,8 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   'invalid-reserve': 'A reserva de manutenção não pode ser negativa.',
   'invalid-platform-name': 'Informe o nome da plataforma (até 30 letras).',
   'duplicate-platform': 'Essa plataforma já existe.',
+  'invalid-maintenance-name': 'Dê um nome ao item (ex.: Troca de óleo).',
+  'invalid-interval': 'Informe de quantos em quantos km trocar.',
   'invalid-name': 'Informe seu nome.',
   'invalid-email': 'Informe um e-mail válido.',
   'invalid-password': 'A senha precisa ter pelo menos 6 caracteres.',

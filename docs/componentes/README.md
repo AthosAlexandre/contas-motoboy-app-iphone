@@ -75,8 +75,8 @@ Breve descrição / quando usar.
 | `McPeriodPicker` | `v-btn-toggle` dia/semana/mês + navegação ‹ › | 3 ✅ | [mc-period-picker.md](./mc-period-picker.md) |
 | `McPieChart` | SVG próprio (rosca), sem biblioteca — ADR-0017 | 3 ✅ | [mc-pie-chart.md](./mc-pie-chart.md) |
 | `McLineChart` | SVG próprio (linha + área), sem biblioteca — ADR-0017 | 3 ✅ | [mc-line-chart.md](./mc-line-chart.md) |
-| `McProgressBar` | `v-progress-linear` com faixas ok/atenção/vencido | 4 | — |
-| `McAlertBanner` | `v-alert` para avisos dentro do app (ADR-0013) | 4 | — |
+| `McProgressBar` | `v-progress-linear` com faixas ok/atenção/vencido | 4 ✅ | [mc-progress-bar.md](./mc-progress-bar.md) |
+| `McAlertBanner` | `v-alert` para avisos dentro do app (ADR-0013) | 4 ✅ | [mc-alert-banner.md](./mc-alert-banner.md) |
 | `McImagePicker` | `v-btn` + `<input type="file" accept="image/*">` + redimensionamento | 5 | — |
 | `McSourceList` | `v-list` com as fontes (título + link) exigidas pelo Grounding | 5 | — |
 | `McSearchSuggestions` | `iframe` `srcdoc` isolado com o HTML de sugestões de busca do Google | 5 | — |

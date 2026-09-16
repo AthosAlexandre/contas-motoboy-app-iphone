@@ -36,10 +36,7 @@ export interface PeriodReport {
   entries: DayEntries
 }
 
-/**
- * No **mês** o combustível é o valor real dos abastecimentos; no dia e na semana, o estimado por km
- * gravado no turno (REGRAS-DE-NEGOCIO).
- */
+/** Combustível entra pelo valor pago nos abastecimentos do período (ADR-0018). */
 export async function getReport(kind: PeriodKind, day: string): Promise<PeriodReport> {
   const range = rangeOf(kind, day)
   const [shifts, earnings, expenses, fuelings] = await Promise.all([
@@ -49,13 +46,7 @@ export async function getReport(kind: PeriodKind, day: string): Promise<PeriodRe
     repos.fuelings.listByDayRange(range),
   ])
 
-  const summary = summarizePeriod({
-    shifts,
-    earnings,
-    expenses,
-    fuelings,
-    fuelCostMode: kind === 'month' ? 'real' : 'estimated',
-  })
+  const summary = summarizePeriod({ shifts, earnings, expenses, fuelings })
 
   return {
     kind,
@@ -63,7 +54,7 @@ export async function getReport(kind: PeriodKind, day: string): Promise<PeriodRe
     summary,
     earnings: earningsByPlatform(earnings),
     costs: costBreakdown(summary, expenses),
-    daily: dailySeries(range, { shifts, earnings, expenses }),
+    daily: dailySeries(range, { shifts, earnings, expenses, fuelings }),
     entries: { earnings, expenses, fuelings },
   }
 }
@@ -88,7 +79,7 @@ export async function getMonthlyProfits(day: string, months = 6): Promise<MonthP
       repos.expenses.listByDayRange(range),
       repos.fuelings.listByDayRange(range),
     ])
-    const summary = summarizePeriod({ shifts, earnings, expenses, fuelings, fuelCostMode: 'real' })
+    const summary = summarizePeriod({ shifts, earnings, expenses, fuelings })
     result.push({ month: range.from, netCents: summary.netProfitCents, grossCents: summary.grossCents, km: summary.km })
   }
 

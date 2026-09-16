@@ -17,8 +17,8 @@ Arquivo: `src/pages/reports/ReportsPage.vue` · casos de uso: `src/actions/repor
 8. **Lançamentos do período** — lista com **editar** (diálogo) e **excluir** (pede confirmação).
 
 ## Regras visíveis
-- **Mês** usa o **valor real** dos abastecimentos; **dia e semana** usam o custo estimado gravado no
-  turno (REGRAS-DE-NEGOCIO).
+- O **combustível é o valor pago** nos abastecimentos do período, igual em dia, semana e mês (ADR-0018).
+  O card mostra também a **estimativa por km** como indicador.
 - Dias sem movimento entram zerados no gráfico.
 - Aviso quando algum turno do período ficou sem consumo informado.
 - Editar um abastecimento **recalcula o preço por litro**.

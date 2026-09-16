@@ -8,8 +8,8 @@ Tela inicial do app. Arquivo: `src/pages/today/TodayPage.vue` · estado: `src/st
    - km final menor que o inicial → erro no campo, botão desabilitado.
    - mais de 500 km no turno → aviso para conferir (não bloqueia).
 3. Vê os números do dia:
-   - **Quanto guardar hoje** (destaque) = combustível + reserva de manutenção.
-   - Ganhos, lucro líquido, gastos, km rodados (com R$/km de ganho).
+   - **Quanto guardar hoje** (destaque) = **reserva de manutenção** dos km rodados (ADR-0018).
+   - Ganhos, lucro líquido, combustível abastecido hoje, gastos, km rodados (com R$/km de ganho).
    - Linha "Cálculo com Gasolina · 40 km/l · R$ 6,200/l" — o que será usado no próximo encerramento
      (mostra "(medido)" quando o consumo vem dos tanques cheios).
 4. Vê os **lançamentos de hoje** (mais recentes primeiro) e pode excluir (pede confirmação).
@@ -23,9 +23,9 @@ Tela inicial do app. Arquivo: `src/pages/today/TodayPage.vue` · estado: `src/st
 - `startShift`, `endShift`, `removeEntry` — cada uma recarrega o dia.
 
 ## Regras visíveis
-- Combustível e manutenção só entram quando o turno é **encerrado** (snapshot — ADR-0009).
-- Abastecimento do dia **não** soma no lucro do dia (usa o custo estimado por km).
-- Aviso se o consumo do combustível usado não estiver informado na moto.
+- A **reserva de manutenção** só entra quando o turno é **encerrado** (snapshot — ADR-0009).
+- O **abastecimento entra pelo valor pago**, no dia em que foi lançado (ADR-0018).
+- Aviso se o consumo do combustível usado não estiver informado: só a estimativa por km fica incompleta.
 
 ## Estados
 - Nada lançado → "Nada lançado hoje ainda."

@@ -32,7 +32,7 @@
             icon="mdi-gas-station"
             color="fuel"
             :value="formatMoney(summary.fuelCostCents)"
-            :caption="kind === 'month' ? 'valor pago no posto' : 'estimado por km'"
+            :caption="`pago no posto · estimado por km: ${formatMoney(summary.estimatedFuelCostCents)}`"
           />
         </v-col>
         <v-col cols="6">
@@ -41,7 +41,7 @@
             icon="mdi-wrench-outline"
             color="maintenance"
             :value="formatMoney(summary.maintenanceReserveCents)"
-            caption="manutenção"
+            caption="manutenção (guardar)"
           />
         </v-col>
         <v-col cols="6">
@@ -68,7 +68,7 @@
         type="warning"
         variant="tonal"
         density="compact"
-        text="Algum turno ficou sem consumo informado: o combustível dele não entrou na conta."
+        text="Algum turno ficou sem consumo informado: a estimativa por km ficou incompleta (o valor pago no posto não muda)."
       />
 
       <!-- De onde veio e para onde foi -->
@@ -330,7 +330,8 @@ const periodLabel = computed(() => {
 const profitCaption = computed(() => {
   const value = summary.value
   if (!value) return undefined
-  return `${formatMoney(value.grossCents)} de ganho − ${formatMoney(value.toSaveCents + value.expensesCents)} de custos`
+  const costs = value.fuelCostCents + value.expensesCents + value.maintenanceReserveCents
+  return `${formatMoney(value.grossCents)} de ganho − ${formatMoney(costs)} de custos`
 })
 
 function platformName(id: string): string {

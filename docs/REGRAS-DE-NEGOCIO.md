@@ -63,19 +63,25 @@ consumo = (kmAbastecimentoCheioAtual − kmAbastecimentoCheioAnterior) / litrosC
 > a leitura da IA vira "~1/2 tanque", impreciso demais para calcular dinheiro. A foto do painel
 > serve bem para o **odômetro** (número exato). O nível de combustível fica como informação de apoio.
 
-### Custo de combustível do turno
-Dois jeitos, nesta ordem de preferência:
-1. **Estimado por km** (padrão, funciona todo dia mesmo sem abastecer):
-   ```
-   custoCombustível = (kmRodados / consumo[combustívelAtual]) × preçoLitro[combustívelAtual]
-   ```
-   - `combustívelAtual` = combustível do **último abastecimento** antes do turno.
-   - `preçoLitro` = do último abastecimento **daquele combustível** (ou o preço padrão dos Ajustes).
-2. **Real**: soma dos **valores totais** dos abastecimentos no período. Usado nos resumos
-   **mensais**, onde as idas ao posto já se diluíram.
+### Custo de combustível (ADR-0018)
+**Vale o que foi pago**, no dia em que o abastecimento foi lançado:
+```
+custoCombustível(período) = Σ valorTotal dos abastecimentos do período
+```
+Serve igual para dia, semana e mês. Abastecer é como qualquer outro gasto: saiu do bolso, entra na conta
+daquele dia. Pode ser lançado antes ou depois de encerrar o turno.
 
-> Ex. gasolina: 120 km ÷ 40 km/l = 3 l × R$ 6,20 = **R$ 18,60** de combustível no dia.
-> Ex. etanol: 120 km ÷ 28 km/l = 4,29 l × R$ 4,15 = **R$ 17,79** de combustível no dia.
+**Estimativa por km** (indicador, **fora** do lucro):
+```
+custoEstimado = (kmRodados / consumo[combustívelAtual]) × preçoLitro[combustívelAtual]
+```
+- `combustívelAtual` = combustível do **último abastecimento** antes do turno.
+- `preçoLitro` = do último abastecimento **daquele combustível** (ou o preço padrão dos Ajustes).
+- Fica gravada no snapshot do turno e aparece no Resumo como "estimado por km"; também é a base do
+  comparativo **etanol × gasolina**.
+
+> Ex. gasolina: 120 km ÷ 40 km/l = 3 l × R$ 6,20 = **R$ 18,60** de estimativa.
+> Ex. etanol: 120 km ÷ 28 km/l = 4,29 l × R$ 4,15 = **R$ 17,79** de estimativa.
 
 ### Etanol ou gasolina?
 ```
@@ -95,14 +101,21 @@ reservaManutenção = Σ custoPorKm(item) × kmRodados
 > pneus R$ 400 a cada 15.000 km = R$ 0,0267/km → total **≈ R$ 0,084/km**.
 > Em 120 km: **≈ R$ 10,10** para guardar.
 
-Os itens nascem da **ficha da moto** (intervalos sugeridos pela IA; custo estimado sugerido ou
-digitado) e são editáveis. Sem itens cadastrados, usa um valor fixo por 100 km dos Ajustes.
+Os itens são cadastrados em **Manutenção** (há 6 sugeridos: óleo, filtro, relação, pneus, pastilhas e
+revisão) e são editáveis. **Sem itens cadastrados**, a reserva usa o valor fixo por 100 km dos Ajustes.
+Na Sprint 5 a ficha da moto pela IA vai sugerir os intervalos.
+
+A reserva de cada turno é calculada **no encerramento** e gravada no snapshot (ADR-0009): mudar o custo
+de um item depois não altera turnos já fechados.
+
+**Registrar a troca** ("Fiz a troca"): guarda km, dia e valor pago no histórico, zera a contagem do item
+(`lastKm`/`lastDate`) e o **valor pago vira a nova estimativa** — a próxima reserva já usa o preço real.
 
 ### Lucro
 ```
-ganhoBruto        = Σ ganhos do período
+ganhoBruto        = Σ ganhos do período (com gorjeta)
 gastosDiretos     = Σ gastos do período, exceto combustível e manutenção
-custoCombustível  = (ver acima)
+custoCombustível  = Σ abastecimentos pagos no período
 lucroOperacional  = ganhoBruto − custoCombustível − gastosDiretos
 lucroLíquido      = lucroOperacional − reservaManutenção
 ```
@@ -119,18 +132,26 @@ R$/hora = ganhoBruto / horasTrabalhadas     (se o turno tiver início e fim)
 
 ### Quanto guardar
 ```
-guardarHoje = custoCombustível + reservaManutenção
+guardarHoje = reservaManutenção
 ```
-Mostrado no fim do turno: "Dos R$ 180 de hoje, guarde R$ 28,70 (gasolina + manutenção)."
+O combustível **não** entra aqui: ele é pago no posto e já saiu do lucro no dia do abastecimento
+(guardar de novo seria contar duas vezes). Mostrado na tela Hoje: "Guarde R$ 10,10 para a manutenção."
 
 ### Próxima manutenção
 ```
 kmDesdeÚltima = odômetroAtual − últimoKm(item)
 faltamKm      = intervaloKm − kmDesdeÚltima
 ```
-- `faltamKm ≤ 10% do intervalo` → alerta amarelo; `≤ 0` → vencido (vermelho).
-- Se houver `intervaloDias`, vence pelo que chegar primeiro (km ou tempo).
-- `odômetroAtual` = maior km registrado (turno ou abastecimento) **da moto ativa**.
+```
+progresso = maior(kmDesdeÚltima / intervaloKm, diasDesdeÚltima / intervaloDias)
+```
+- `progresso ≥ 0,9` (90% do intervalo) → **atenção** (amarelo); `≥ 1` → **vencido** (vermelho).
+- Com `intervaloDias`, vence pelo que chegar primeiro (km ou tempo).
+- `odômetroAtual` = maior km conhecido **da moto ativa**: fim do último turno, km inicial do turno
+  aberto, odômetro de abastecimento ou o km da última troca registrada.
+- Odômetro menor que a última troca não gera km negativo (conta zero).
+- A tela Hoje mostra o item mais urgente num aviso, e a aba Manutenção mostra quantos pedem atenção
+  (ADR-0013 — sem notificação push).
 
 ## Moto
 - O usuário informa **marca, modelo e ano** (cilindrada opcional).
@@ -149,7 +170,7 @@ faltamKm      = intervaloKm − kmDesdeÚltima
 - **Fuso:** `America/Sao_Paulo`.
 - **Dia:** data de **início** do turno (turno que passa da meia-noite conta no dia em que começou).
 - **Semana:** segunda a domingo.
-- **Mês:** mês civil. Comparativo mês a mês usa o **custo real** de combustível.
+- **Mês:** mês civil.
 
 ## Casos de borda
 - Turno sem km final → não calcula combustível/reserva; resumo mostra "turno em aberto".
@@ -157,5 +178,8 @@ faltamKm      = intervaloKm − kmDesdeÚltima
 - Mais de um turno no dia → somam-se km e ganhos.
 - Divisão por zero (0 km) → métricas por km mostram "—".
 - Leitura da IA com baixa confiança → campo destacado para conferência.
-- Abastecimento lançado no dia **não** soma no lucro do dia: o dia usa o custo estimado do snapshot
-  do turno (senão contaria duas vezes). O valor pago entra no resumo **mensal** (custo real).
+- Abastecimento pode ser lançado **a qualquer momento** (antes ou depois de encerrar o turno) e conta
+  no **dia do lançamento**. O lucro oscila: cai no dia que abastece e sobe nos outros; na semana e no
+  mês isso se equilibra.
+- Turno encerrado **sem consumo informado** → só a estimativa por km fica incompleta; o valor pago no
+  posto e a reserva de manutenção não mudam.

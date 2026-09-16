@@ -45,7 +45,7 @@ const expense: Expense = {
 }
 
 describe('summarizePeriod', () => {
-  it('REGRAS: dos R$ 180 do dia, guardar R$ 28,70 (combustível + manutenção)', () => {
+  it('sem abastecer no dia: só a reserva de manutenção entra como custo de moto (ADR-0018)', () => {
     const summary = summarizePeriod({
       shifts: [closedShift],
       earnings: [earning(12000), earning(5000, 1000)],
@@ -56,17 +56,18 @@ describe('summarizePeriod', () => {
       km: 120,
       grossCents: 18000,
       expensesCents: 2000,
-      fuelCostCents: 1860,
+      fuelCostCents: 0,
+      estimatedFuelCostCents: 1860, // indicador: quanto o combustível teria custado por km
       maintenanceReserveCents: 1010,
-      operatingProfitCents: 14140,
-      netProfitCents: 13130,
-      toSaveCents: 2870,
+      operatingProfitCents: 16000,
+      netProfitCents: 14990,
+      toSaveCents: 1010, // guardar = manutenção (o combustível se paga no posto)
       closedShifts: 1,
       openShifts: 0,
       missingConsumption: false,
     })
     expect(summary.grossPerKmCents).toBe(150)
-    expect(summary.netPerKmCents).toBeCloseTo(109.42, 2)
+    expect(summary.netPerKmCents).toBeCloseTo(124.92, 2)
   })
 
   it('turno aberto não entra no km nem nos custos', () => {
@@ -75,16 +76,17 @@ describe('summarizePeriod', () => {
     expect(summary.grossPerKmCents).toBeNull()
   })
 
-  it('modo real usa a soma dos abastecimentos', () => {
+  it('abastecimento entra pelo valor pago, no dia do lançamento', () => {
     const summary = summarizePeriod({
       shifts: [closedShift],
       earnings: [earning(18000)],
       expenses: [],
       fuelings: [fueling({ totalCents: 3100 }), fueling({ totalCents: 2000 })],
-      fuelCostMode: 'real',
     })
     expect(summary.fuelCostCents).toBe(5100)
+    expect(summary.estimatedFuelCostCents).toBe(1860)
     expect(summary.netProfitCents).toBe(18000 - 5100 - 1010)
+    expect(summary.toSaveCents).toBe(1010)
   })
 
   it('avisa quando um turno ficou sem consumo', () => {
@@ -94,6 +96,8 @@ describe('summarizePeriod', () => {
     }
     const summary = summarizePeriod({ shifts: [withoutConsumption], earnings: [], expenses: [] })
     expect(summary.missingConsumption).toBe(true)
+    expect(summary.estimatedFuelCostCents).toBe(0)
+    // O valor pago no posto não depende do consumo: continua vindo dos abastecimentos.
     expect(summary.fuelCostCents).toBe(0)
   })
 })

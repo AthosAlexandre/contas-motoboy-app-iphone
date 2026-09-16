@@ -48,12 +48,14 @@ export interface DailyPoint {
 }
 
 /** Um ponto por dia do período (dias sem movimento entram zerados). */
-export function dailySeries(range: DayRange, input: Omit<SummaryInput, 'fuelCostMode' | 'fuelings'>): DailyPoint[] {
+export function dailySeries(range: DayRange, input: SummaryInput): DailyPoint[] {
+  const fuelings = input.fuelings ?? []
   return eachDay(range).map((day) => {
     const summary = summarizePeriod({
       shifts: input.shifts.filter((shift) => shift.day === day),
       earnings: input.earnings.filter((earning) => earning.day === day),
       expenses: input.expenses.filter((expense) => expense.day === day),
+      fuelings: fuelings.filter((fueling) => fueling.day === day),
     })
     return { day, grossCents: summary.grossCents, netCents: summary.netProfitCents, km: summary.km }
   })

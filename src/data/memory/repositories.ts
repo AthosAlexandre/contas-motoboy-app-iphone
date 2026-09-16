@@ -2,7 +2,17 @@
  * Repositórios locais (memória + storage opcional) — implementam as ports do domain.
  */
 import { DEFAULT_PLATFORMS, DEFAULT_SETTINGS } from '@/domain/defaults'
-import type { Earning, Expense, Fueling, Motorcycle, Platform, Settings, Shift } from '@/domain/entities'
+import type {
+  Earning,
+  Expense,
+  Fueling,
+  MaintenanceItem,
+  MaintenanceRecord,
+  Motorcycle,
+  Platform,
+  Settings,
+  Shift,
+} from '@/domain/entities'
 import { isDayInRange } from '@/domain/period'
 import type { Repositories } from '@/domain/ports'
 
@@ -32,6 +42,8 @@ export function createMemoryRepos(storage?: KeyValueStorage, options: MemoryRepo
   const earnings = new MemoryCollection<Earning>(`${KEY_PREFIX}earnings`, storage)
   const expenses = new MemoryCollection<Expense>(`${KEY_PREFIX}expenses`, storage)
   const fuelings = new MemoryCollection<Fueling>(`${KEY_PREFIX}fuelings`, storage)
+  const maintenanceItems = new MemoryCollection<MaintenanceItem>(`${KEY_PREFIX}maintenanceItems`, storage)
+  const maintenanceRecords = new MemoryCollection<MaintenanceRecord>(`${KEY_PREFIX}maintenanceRecords`, storage)
   const platforms = new MemoryCollection<Platform>(`${KEY_PREFIX}platforms`, storage, DEFAULT_PLATFORMS)
   const motorcycles = new MemoryCollection<Motorcycle>(
     `${KEY_PREFIX}motorcycles`,
@@ -113,6 +125,36 @@ export function createMemoryRepos(storage?: KeyValueStorage, options: MemoryRepo
       },
       async remove(id) {
         fuelings.remove(id)
+      },
+    },
+
+    maintenanceItems: {
+      async listByMotorcycle(motorcycleId) {
+        return maintenanceItems
+          .all()
+          .filter((item) => item.motorcycleId === motorcycleId)
+          .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+      },
+      async add(input) {
+        return maintenanceItems.add(input)
+      },
+      async update(item) {
+        maintenanceItems.update(item)
+      },
+      async remove(id) {
+        maintenanceItems.remove(id)
+      },
+    },
+
+    maintenanceRecords: {
+      async listByMotorcycle(motorcycleId) {
+        return maintenanceRecords
+          .all()
+          .filter((record) => record.motorcycleId === motorcycleId)
+          .sort(byCreatedAt)
+      },
+      async add(input) {
+        return maintenanceRecords.add(input)
       },
     },
 

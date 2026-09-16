@@ -460,3 +460,35 @@ valores.
 - ✅ Leitor de tela lê os valores (o `aria-label` lista fatias e pontos).
 - ⚠️ Sem tooltip ao tocar num ponto: mostramos os números na legenda e nos cards.
 - ⚠️ Gráfico novo (barras, por exemplo) exigirá escrever outro componente; se virarem muitos, reavaliar.
+
+---
+
+## ADR-0018 — Combustível conta pelo valor pago, no dia do lançamento
+
+**Data:** 2026-09-16
+**Status:** Aceito (decisão do usuário, depois do primeiro dia de uso real)
+
+**Contexto:** A regra original diluía o combustível: cada dia recebia uma parte estimada
+(km ÷ consumo × preço) e o valor pago só aparecia no resumo mensal. No primeiro uso real isso confundiu
+— o usuário abasteceu com etanol, o app mostrou "gasolina R$ 6,20/l" (o padrão, porque o abastecimento
+ainda não tinha sido lançado) e o valor pago não aparecia em lugar nenhum do dia.
+
+**Decisão:** O combustível entra no lucro **pelo valor pago**, no **dia do lançamento**, igual a qualquer
+gasto — em todos os períodos. O abastecimento pode ser lançado a qualquer momento, antes ou depois de
+encerrar o turno. Como consequência, **"quanto guardar" passa a ser só a reserva de manutenção**.
+A estimativa por km continua sendo calculada e gravada no snapshot do turno
+(`estimatedFuelCostCents`), mas como **indicador**: aparece no Resumo e é a base do comparativo
+etanol × gasolina.
+
+**Alternativas consideradas:**
+- **Manter o custo diluído** (regra antiga) — lucro diário mais estável, mas dois números de combustível
+  na tela e nenhum deles igual ao extrato do bolso.
+- **Mostrar os dois** (caixa e lucro "suavizado") — mais fiel contabilmente, porém mais difícil de
+  entender no celular, e foi exatamente o que confundiu.
+
+**Consequências:**
+- ✅ Bate com o extrato: abasteceu R$ 50 hoje, saíram R$ 50 hoje.
+- ✅ Um número só de combustível por período; some a diferença entre dia/semana e mês.
+- ⚠️ O lucro diário oscila conforme os dias de abastecer (some na semana/mês).
+- ⚠️ "Quanto guardar" ficou menor: agora é só manutenção. O texto da tela explica.
+- 🔜 Sprint 4: a reserva passa a vir dos itens de manutenção reais, no lugar do valor por 100 km.

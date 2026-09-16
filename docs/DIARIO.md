@@ -4,6 +4,54 @@ Registro do que foi feito, quando e por quê. Ordem cronológica (mais recente n
 
 ---
 
+## 2026-09-16 — Sprint 4: manutenção de verdade
+
+**Feito:**
+- **domain:** entidades `MaintenanceItem` e `MaintenanceRecord`; `maintenanceStatus` (progresso por km
+  **ou** por tempo, atenção a 90%, vencido a 100%); `daysBetween` em `period.ts`; 6 itens sugeridos em
+  `defaults.ts`.
+- **data:** coleções `maintenanceItems` e `maintenanceRecords` em memória e no Firestore.
+- **actions/maintenance.ts:** visão geral (odômetro, itens ordenados por urgência, reserva por km,
+  contagem de vencidos/atenção), cadastrar/editar/excluir, itens sugeridos, registrar a troca e histórico.
+- **Reserva real:** `endShift` passou a calcular a reserva pelos **itens** (custo ÷ intervalo); sem itens,
+  segue o valor por 100 km dos Ajustes.
+- **UI:** `McProgressBar`, `McAlertBanner`, `stores/maintenance`, tela **Manutenção** completa, **badge**
+  na aba e **banner** na tela Hoje; Ajustes explicando que o valor por 100 km é só o plano B.
+- Docs: SPRINTS, REGRAS (reserva pelos itens, regra dos 90%, odômetro), 2 docs de componente,
+  `fluxos/manutencao.md`, firebase/.
+
+**Verificação:** 153 testes (situação por km e por tempo, odômetro pelo maior km conhecido, reserva pelos
+itens × Ajustes, registrar troca com o preço virando estimativa), type-check, lint e build sem erros.
+As telas **não foram abertas num navegador** nesta sessão.
+
+**Decisões pequenas:**
+- O valor pago na troca vira a nova estimativa do item (a reserva aprende o preço real).
+- O histórico guarda o nome do item, para não sumir se o item for excluído.
+- Os itens sugeridos nascem com `lastKm` = odômetro atual, então começam "em dia".
+
+---
+
+## 2026-09-16 — Combustível passa a contar pelo valor pago (ADR-0018)
+
+**Contexto:** Primeiro dia de uso real (turno do almoço: R$ 54,00 de ganho, 56 km). O usuário abasteceu
+com **etanol**, mas o app mostrou a conta com gasolina a R$ 6,20/l — o preço padrão, porque a estimativa
+usa o último abastecimento **lançado**, e ele ainda não tinha lançado. Pedido dele: *"pode ser lançado a
+qualquer momento, vai ser contado como gasto do dia"*.
+
+**Decisão (ADR-0018):** combustível entra pelo **valor pago**, no **dia do lançamento**, em todos os
+períodos. "Quanto guardar" virou só a **reserva de manutenção**. A estimativa por km continua no
+snapshot como **indicador** (`estimatedFuelCostCents`) e é a base do comparativo etanol × gasolina.
+
+**Feito:** `summarizePeriod` reescrito; `dailySeries` passou a receber os abastecimentos;
+`getReport`/`getPeriodSummary` sem o antigo `fuelCostMode`; tela Hoje com card de **Combustível
+abastecido hoje** e textos novos; Resumo com "pago no posto · estimado por km: X"; REGRAS, fluxos,
+SPRINTS e ADR-0018 atualizados.
+
+**Verificação:** 136 testes (incluindo abastecer depois de encerrar o turno e o peso no dia certo),
+type-check, lint e build sem erros.
+
+---
+
 ## 2026-09-16 — Sprint 3: Resumo, gráficos e comparativos
 
 **Feito:**

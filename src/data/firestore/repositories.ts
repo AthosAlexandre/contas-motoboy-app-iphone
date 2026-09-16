@@ -21,13 +21,30 @@ import {
 } from 'firebase/firestore'
 
 import { DEFAULT_SETTINGS } from '@/domain/defaults'
-import type { Earning, Expense, Fueling, Motorcycle, Platform, Shift } from '@/domain/entities'
+import type {
+  Earning,
+  Expense,
+  Fueling,
+  MaintenanceItem,
+  MaintenanceRecord,
+  Motorcycle,
+  Platform,
+  Shift,
+} from '@/domain/entities'
 import type { DayRange } from '@/domain/period'
 import type { Repositories } from '@/domain/ports'
 
 import { numberOr, toEntity, withoutId } from './mappers'
 
-type CollectionName = 'shifts' | 'earnings' | 'expenses' | 'fuelings' | 'platforms' | 'motorcycles'
+type CollectionName =
+  | 'shifts'
+  | 'earnings'
+  | 'expenses'
+  | 'fuelings'
+  | 'platforms'
+  | 'motorcycles'
+  | 'maintenanceItems'
+  | 'maintenanceRecords'
 
 function byCreatedAt(a: { createdAt: string }, b: { createdAt: string }): number {
   return a.createdAt.localeCompare(b.createdAt)
@@ -137,6 +154,34 @@ export function createFirestoreRepos(db: Firestore, uid: string): Repositories {
       },
       async remove(id) {
         remove('fuelings', id)
+      },
+    },
+
+    maintenanceItems: {
+      async listByMotorcycle(motorcycleId) {
+        const snapshot = await getDocs(query(col('maintenanceItems'), where('motorcycleId', '==', motorcycleId)))
+        return snapshot.docs
+          .map((item) => toEntity<MaintenanceItem>(item.id, item.data()))
+          .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+      },
+      async add(input) {
+        return add<MaintenanceItem>('maintenanceItems', input)
+      },
+      async update(item) {
+        put('maintenanceItems', item)
+      },
+      async remove(id) {
+        remove('maintenanceItems', id)
+      },
+    },
+
+    maintenanceRecords: {
+      async listByMotorcycle(motorcycleId) {
+        const snapshot = await getDocs(query(col('maintenanceRecords'), where('motorcycleId', '==', motorcycleId)))
+        return snapshot.docs.map((item) => toEntity<MaintenanceRecord>(item.id, item.data())).sort(byCreatedAt)
+      },
+      async add(input) {
+        return add<MaintenanceRecord>('maintenanceRecords', input)
       },
     },
 

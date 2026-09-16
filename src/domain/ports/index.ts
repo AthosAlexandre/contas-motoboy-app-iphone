@@ -1,7 +1,19 @@
 /**
  * Ports: o que o domínio precisa da infraestrutura. Implementações em src/data (memória, Firestore).
  */
-import type { AuthUser, Earning, Expense, Fueling, Motorcycle, New, Platform, Settings, Shift } from '@/domain/entities'
+import type {
+  AuthUser,
+  Earning,
+  Expense,
+  Fueling,
+  MaintenanceItem,
+  MaintenanceRecord,
+  Motorcycle,
+  New,
+  Platform,
+  Settings,
+  Shift,
+} from '@/domain/entities'
 import type { DomainError } from '@/domain/errors'
 import type { DayRange } from '@/domain/period'
 
@@ -56,6 +68,18 @@ export interface SettingsRepository {
   save(settings: Settings): Promise<void>
 }
 
+export interface MaintenanceItemRepository {
+  listByMotorcycle(motorcycleId: string): Promise<MaintenanceItem[]>
+  add(item: New<MaintenanceItem>): Promise<MaintenanceItem>
+  update(item: MaintenanceItem): Promise<void>
+  remove(id: string): Promise<void>
+}
+
+export interface MaintenanceRecordRepository {
+  listByMotorcycle(motorcycleId: string): Promise<MaintenanceRecord[]>
+  add(record: New<MaintenanceRecord>): Promise<MaintenanceRecord>
+}
+
 export interface Repositories {
   shifts: ShiftRepository
   earnings: EarningRepository
@@ -64,6 +88,8 @@ export interface Repositories {
   platforms: PlatformRepository
   motorcycles: MotorcycleRepository
   settings: SettingsRepository
+  maintenanceItems: MaintenanceItemRepository
+  maintenanceRecords: MaintenanceRecordRepository
 }
 
 export interface AuthService {

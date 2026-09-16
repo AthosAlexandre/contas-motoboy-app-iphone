@@ -60,10 +60,11 @@ describe('turno', () => {
       km: 120,
       grossCents: 18000,
       expensesCents: 2000,
-      fuelCostCents: 1860,
+      fuelCostCents: 3100, // valor pago no abastecimento de hoje (ADR-0018)
+      estimatedFuelCostCents: 1860, // indicador por km
       maintenanceReserveCents: 1010,
-      netProfitCents: 13130,
-      toSaveCents: 2870,
+      netProfitCents: 11890,
+      toSaveCents: 1010,
     })
 
     expect(await getOpenShift()).toBeNull()
@@ -83,7 +84,9 @@ describe('turno', () => {
     )
 
     const summary = await getPeriodSummary(today)
-    expect(summary.fuelCostCents).toBe(1860)
+    // O abastecimento foi lançado no dia seguinte: não entra neste dia, e o snapshot não muda.
+    expect(summary.fuelCostCents).toBe(0)
+    expect(summary.estimatedFuelCostCents).toBe(1860)
     expect((await getFuelContext())?.pricePerLiterCents).toBe(800)
   })
 })

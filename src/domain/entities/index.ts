@@ -111,6 +111,33 @@ export interface Expense {
   source: EntrySource
 }
 
+/** Item que se desgasta: óleo, relação, pneus, revisão… */
+export interface MaintenanceItem {
+  id: string
+  motorcycleId: string
+  name: string
+  /** A cada quantos km trocar. */
+  intervalKm: number
+  /** Prazo em dias, quando também vence por tempo (óleo, revisão). `null` = só por km. */
+  intervalDays: number | null
+  estimatedCostCents: number
+  /** Km e data da última troca (base da contagem). */
+  lastKm: number
+  lastDate: string
+}
+
+/** Troca feita. Guarda o nome do item para o histórico sobreviver se o item for apagado. */
+export interface MaintenanceRecord {
+  id: string
+  motorcycleId: string
+  itemId: string
+  itemName: string
+  odometerKm: number
+  costCents: number
+  day: string
+  createdAt: string
+}
+
 export interface Fueling {
   id: string
   motorcycleId: string

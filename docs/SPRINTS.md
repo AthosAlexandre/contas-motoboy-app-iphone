@@ -30,6 +30,8 @@ nada quebra.
 - ➕ **Troca de moto/consumo a qualquer momento** sem alterar relatórios passados (snapshot por turno).
 - ➕ **Etanol ou gasolina:** abastecimento registra combustível, **valor total** e **litros**;
   consumo medido separado por combustível; comparativo de R$/km entre os dois.
+- 🔁 **Combustível conta pelo valor pago, no dia do lançamento** (ADR-0018, depois do 1º uso real):
+  "quanto guardar" virou só a reserva de manutenção e a estimativa por km ficou como indicador.
 
 ---
 
@@ -116,13 +118,18 @@ nada quebra.
 - [x] Testes: divisões, série diária, períodos, mês real × estimado e edição de lançamentos (133 no total)
 - [ ] **(você)** Usar num dia real e conferir se os números e as telas fazem sentido
 
-## 🗓️ Sprint 4 — Manutenção e reservas
-- [ ] Itens de manutenção (óleo, relação, pneus, freios, revisão…) com intervalo em km e/ou dias
-      e custo estimado
-- [ ] Registrar "fiz a troca" (km + data + valor real)
-- [ ] Progresso até a próxima troca ("faltam 300 km") com `McProgressBar`
-- [ ] **Reserva de manutenção** por km rodado, somada no resumo do dia/semana
-- [ ] Avisos **dentro do app** (ADR-0013): `McAlertBanner` na tela Hoje + badge na aba Manutenção
+## 🗓️ Sprint 4 — Manutenção e reservas — código pronto, falta testar no uso real
+- [x] Itens de manutenção (óleo, relação, pneus, freios, revisão…) com intervalo em km e/ou dias
+      e custo estimado, além de 6 **itens sugeridos** com um toque
+- [x] Registrar "fiz a troca" (km + valor pago) → zera a contagem, entra no histórico e o valor pago
+      vira a nova estimativa
+- [x] Progresso até a próxima troca ("faltam 300 km" / "vencido há 100 km") com `McProgressBar`
+- [x] **Reserva de manutenção** calculada pelos itens (custo ÷ intervalo), gravada no snapshot do turno;
+      sem itens, segue o valor por 100 km dos Ajustes
+- [x] Avisos **dentro do app** (ADR-0013): `McAlertBanner` na tela Hoje + badge na aba Manutenção
+- [x] Odômetro = maior km conhecido (fim de turno, turno aberto, abastecimento ou última troca)
+- [x] Testes: situação por km e por tempo, reserva pelos itens, registrar troca e histórico (153 no total)
+- [ ] **(você)** Cadastrar os itens da sua moto e conferir os avisos no uso real
 
 ## 🗓️ Sprint 5 — IA: print/foto → dados
 - [ ] Firebase AI Logic (`firebase/ai`) com Gemini Developer API; modelo via Remote Config (ADR-0006)
