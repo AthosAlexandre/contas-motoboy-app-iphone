@@ -28,6 +28,8 @@ As telas **não foram abertas num navegador** nesta sessão.
 - O valor pago na troca vira a nova estimativa do item (a reserva aprende o preço real).
 - O histórico guarda o nome do item, para não sumir se o item for excluído.
 - Os itens sugeridos nascem com `lastKm` = odômetro atual, então começam "em dia".
+- **Troca de óleo sugerida: a cada 2.500 km** (era 1.000), a pedido do usuário — é o intervalo que ele
+  usa na prática. Vale para quem cadastrar daqui pra frente; quem já cadastrou edita o item na tela.
 
 ---
 

@@ -97,7 +97,8 @@ Cada item tem um custo por km:
 custoPorKm(item) = custoEstimado / intervaloKm
 reservaManutenção = Σ custoPorKm(item) × kmRodados
 ```
-> Ex.: óleo R$ 45 a cada 1.000 km = R$ 0,045/km; relação R$ 250 a cada 20.000 km = R$ 0,0125/km;
+> Ex. (números só para ilustrar a conta; o item sugerido pelo app é óleo a cada 2.500 km):
+> óleo R$ 45 a cada 1.000 km = R$ 0,045/km; relação R$ 250 a cada 20.000 km = R$ 0,0125/km;
 > pneus R$ 400 a cada 15.000 km = R$ 0,0267/km → total **≈ R$ 0,084/km**.
 > Em 120 km: **≈ R$ 10,10** para guardar.
 

@@ -20,7 +20,7 @@ export interface MaintenancePreset {
  * Valores de referência para moto de entrega; servem só como ponto de partida.
  */
 export const MAINTENANCE_PRESETS: MaintenancePreset[] = [
-  { name: 'Troca de óleo', intervalKm: 1000, intervalDays: 180, estimatedCostCents: 4500 },
+  { name: 'Troca de óleo', intervalKm: 2500, intervalDays: 180, estimatedCostCents: 4500 },
   { name: 'Filtro de óleo', intervalKm: 3000, intervalDays: null, estimatedCostCents: 2500 },
   { name: 'Relação (kit)', intervalKm: 20000, intervalDays: null, estimatedCostCents: 25000 },
   { name: 'Pneus', intervalKm: 15000, intervalDays: null, estimatedCostCents: 40000 },
